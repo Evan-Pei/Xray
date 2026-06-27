@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Usage Scheduler</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div>
+                <h1>Machine Usage Scheduler</h1>
+                <p>Track requests, approvals, and usage records in a monthly calendar.</p>
+            </div>
+            <button id="new-booking-button" class="primary-button" type="button">New Application</button>
+        </section>
+
+        <section class="calendar-panel">
+            <div id="calendar"></div>
+        </section>
+    </main>
+
+    <dialog id="booking-dialog">
+        <form id="booking-form" method="dialog">
+            <input type="hidden" id="booking-id">
+            <div class="dialog-header">
+                <h2 id="dialog-title">Create Booking</h2>
+                <button type="button" class="ghost-button" id="close-dialog-button">✕</button>
+            </div>
+
+            <label>
+                Applicant
+                <input id="applicant_name" name="applicant_name" required>
+            </label>
+            <label>
+                Machine
+                <input id="machine_name" name="machine_name" required>
+            </label>
+            <label>
+                Purpose
+                <textarea id="purpose" name="purpose" rows="3" required></textarea>
+            </label>
+            <div class="grid two-column">
+                <label>
+                    Start time
+                    <input id="start_time" name="start_time" type="datetime-local" required>
+                </label>
+                <label>
+                    End time
+                    <input id="end_time" name="end_time" type="datetime-local" required>
+                </label>
+            </div>
+            <label>
+                Status
+                <select id="status" name="status">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </label>
+            <div class="grid two-column">
+                <label>
+                    Actual start
+                    <input id="actual_start" name="actual_start" type="datetime-local">
+                </label>
+                <label>
+                    Actual end
+                    <input id="actual_end" name="actual_end" type="datetime-local">
+                </label>
+            </div>
+            <label>
+                Usage notes
+                <textarea id="usage_notes" name="usage_notes" rows="3"></textarea>
+            </label>
+
+            <p id="form-error" class="error-text" hidden></p>
+
+            <div class="dialog-actions">
+                <button type="button" id="delete-booking-button" class="danger-button" hidden>Delete</button>
+                <button type="submit" class="primary-button">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        window.XRAY_DEFAULT_MONTH = { year: {{ default_year }}, month: {{ default_month }} };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+    <script src="{{ url_for('static', path='app.js') }}"></script>
+</body>
+</html>

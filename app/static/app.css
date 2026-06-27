@@ -1,0 +1,148 @@
+:root {
+    color-scheme: light;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-panel,
+dialog {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+}
+
+.calendar-panel {
+    padding: 1rem;
+}
+
+dialog {
+    width: min(640px, calc(100vw - 2rem));
+    padding: 0;
+}
+
+dialog::backdrop {
+    background: rgba(17, 24, 39, 0.45);
+}
+
+form {
+    padding: 1.25rem;
+}
+
+label,
+input,
+textarea,
+select,
+button {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 0.9rem;
+}
+
+input,
+textarea,
+select {
+    margin-top: 0.35rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.primary-button {
+    background: #2563eb;
+    color: white;
+}
+
+.ghost-button {
+    background: transparent;
+    width: auto;
+    color: #4b5563;
+    padding: 0.35rem 0.5rem;
+}
+
+.danger-button {
+    background: #dc2626;
+    color: white;
+}
+
+.dialog-header,
+.dialog-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dialog-actions {
+    margin-top: 1rem;
+}
+
+.dialog-actions button {
+    width: auto;
+}
+
+.grid.two-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.error-text {
+    color: #b91c1c;
+    margin: 0.5rem 0 0;
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.4rem;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+@media (max-width: 720px) {
+    .hero,
+    .dialog-header,
+    .dialog-actions,
+    .grid.two-column {
+        display: block;
+    }
+
+    .hero button,
+    .dialog-actions button {
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+}
