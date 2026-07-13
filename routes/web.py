@@ -141,12 +141,12 @@ def _validate_booking_form():
     )
 
 
-@web_bp.route("/", methods=["GET"])
+@web_bp.route("/")
 def index():
     return render_template("index.html")
 
 
-@web_bp.route("/dashboard", methods=["GET"])
+@web_bp.route("/dashboard")
 def dashboard():
     machines = Machine.query.order_by(Machine.name).all()
     online_count = sum(1 for machine in machines if machine.status == "online")
@@ -160,7 +160,7 @@ def dashboard():
     return render_template("dashboard.html", metrics=metrics, machines=machines)
 
 
-@web_bp.route("/calendar", methods=["GET"])
+@web_bp.route("/calendar")
 def calendar_view():
     today = date.today()
     year, month = today.year, today.month
@@ -190,7 +190,7 @@ def calendar_view():
     )
 
 
-@web_bp.route("/admin/machines", methods=["GET"])
+@web_bp.route("/admin/machines")
 def machine_admin():
     return _render_machine_admin()
 
@@ -207,7 +207,7 @@ def machine_create():
     return redirect(url_for("web.machine_admin"))
 
 
-@web_bp.route("/admin/machines/<int:machine_id>/edit", methods=["GET"])
+@web_bp.route("/admin/machines/<int:machine_id>/edit")
 def machine_edit(machine_id):
     machine = db.session.get(Machine, machine_id)
     if machine is None:
@@ -243,7 +243,7 @@ def machine_delete(machine_id):
     return redirect(url_for("web.machine_admin"))
 
 
-@web_bp.route("/admin/bookings", methods=["GET"])
+@web_bp.route("/admin/bookings")
 def booking_admin():
     return _render_booking_admin()
 
@@ -267,7 +267,7 @@ def booking_create():
     return redirect(url_for("web.booking_admin"))
 
 
-@web_bp.route("/admin/bookings/<int:booking_id>/edit", methods=["GET"])
+@web_bp.route("/admin/bookings/<int:booking_id>/edit")
 def booking_edit(booking_id):
     booking = db.session.get(Booking, booking_id)
     if booking is None:
