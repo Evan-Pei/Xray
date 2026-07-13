@@ -4,10 +4,10 @@ A Python-based tool booking and calendaring webpage for managing appointments an
 
 ## Features
 
-- Tool booking system
-- Calendar management
-- Appointment scheduling
-- Web-based interface
+- **Dashboard** (`/dashboard`) — summary metrics for active machines, scheduled bookings, and pending requests
+- **狀態視窗 – Machine Status Panel** — live-style status view on the dashboard showing each machine as *online*, *maintenance*, or *offline*
+- **行事曆 – Schedule Calendar** (`/calendar`) — monthly calendar grid displaying all booked time-slots for X-ray resources
+- Web-based interface with server-rendered HTML/CSS (no heavy frontend frameworks)
 
 ## Prerequisites
 
@@ -52,24 +52,20 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Or if using Flask/Django:
+Or with the Flask CLI:
 
 ```bash
-# For Flask
 flask run
-
-# For Django
-python manage.py runserver
 ```
 
-The application should be accessible at `http://localhost:5000` or `http://localhost:8000` (depending on your framework).
+The application is accessible at `http://localhost:5000`.
 
 ## Usage
 
-1. Open your web browser and navigate to the local server address
-2. Create an account or log in
-3. Book tools or schedule appointments using the calendar interface
-4. View and manage your bookings
+1. Open your web browser and navigate to `http://localhost:5000`
+2. From the **Home** page, click **Dashboard** or **行事曆 Calendar**
+3. The **Dashboard** shows summary metrics and the **狀態視窗** (machine status panel) with real-time-style status badges
+4. The **行事曆 Calendar** page (`/calendar`) shows a monthly grid with all scheduled bookings
 
 ## Configuration
 
