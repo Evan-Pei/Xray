@@ -725,7 +725,6 @@
             }
 
             function finishMarqueeEdit(saveChanges) {
-                shouldSaveMarqueeOnBlur = true;
                 if (saveChanges) {
                     const updatedText = marqueeInput.value.trim() || DEFAULT_MARQUEE;
                     currentMarquee = updatedText;
@@ -735,6 +734,7 @@
 
                 marqueePanel.classList.remove('editing');
                 marqueeDisplay.classList.remove('paused');
+                shouldSaveMarqueeOnBlur = true;
             }
 
             function getBookingsForDate(dateKey) {
