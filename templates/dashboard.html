@@ -7,24 +7,66 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
         .container { max-width: 1000px; margin: 50px auto; padding: 24px; }
-        .header { background: #0f172a; color: #fff; padding: 20px; border-radius: 12px; }
+        .header { background: #0f172a; color: #fff; padding: 20px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .header h1 { margin: 0; }
+        .header p { margin: 4px 0 0; opacity: .75; }
+        nav a { color: #93c5fd; text-decoration: none; font-weight: 600; margin-left: 16px; }
+        nav a:hover { color: #fff; text-decoration: underline; }
         .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
         .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
         .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
         .value { font-size: 26px; font-weight: 700; margin-top: 8px; }
+
+        /* Status panel */
+        .section-title { font-size: 18px; font-weight: 700; margin: 32px 0 12px; color: #0f172a; }
+        .status-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .status-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+        .status-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+        .status-dot.online      { background: #22c55e; }
+        .status-dot.offline     { background: #ef4444; }
+        .status-dot.maintenance { background: #f59e0b; }
+        .status-info strong { display: block; }
+        .status-info .desc  { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .status-badge { margin-left: auto; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; letter-spacing: .06em; }
+        .status-badge.online      { background: #dcfce7; color: #15803d; }
+        .status-badge.offline     { background: #fee2e2; color: #b91c1c; }
+        .status-badge.maintenance { background: #fef3c7; color: #92400e; }
     </style>
 </head>
 <body>
     <main class="container">
         <section class="header">
-            <h1>Xray Dashboard</h1>
-            <p>Quick overview of booking and machine status.</p>
+            <div>
+                <h1>Xray Dashboard</h1>
+                <p>Quick overview of booking and machine status.</p>
+            </div>
+            <nav>
+                <a href="/">首頁 Home</a>
+                <a href="/calendar">行事曆 Calendar</a>
+            </nav>
         </section>
+
+        <!-- Summary metrics -->
         <section class="cards">
             {% for metric in metrics %}
             <article class="card">
                 <div class="label">{{ metric.label }}</div>
                 <div class="value">{{ metric.value }}</div>
+            </article>
+            {% endfor %}
+        </section>
+
+        <!-- 狀態視窗 – Machine Status Panel -->
+        <h2 class="section-title">狀態視窗 – Machine Status</h2>
+        <section class="status-panel">
+            {% for machine in machines %}
+            <article class="status-card">
+                <span class="status-dot {{ machine.status }}"></span>
+                <div class="status-info">
+                    <strong>{{ machine.name }}</strong>
+                    <span class="desc">{{ machine.description }}</span>
+                </div>
+                <span class="status-badge {{ machine.status }}">{{ machine.status }}</span>
             </article>
             {% endfor %}
         </section>
