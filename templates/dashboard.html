@@ -1,33 +1,1035 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Xray | Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
-        .container { max-width: 1000px; margin: 50px auto; padding: 24px; }
-        .header { background: #0f172a; color: #fff; padding: 20px; border-radius: 12px; }
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
-        .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
-        .value { font-size: 26px; font-weight: 700; margin-top: 8px; }
+        :root {
+            color-scheme: light;
+            --bg: #e2e8f0;
+            --panel: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --line: #cbd5e1;
+            --primary: #2563eb;
+            --primary-soft: #dbeafe;
+            --shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .top-bar,
+        .calendar-panel,
+        .modal-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(203, 213, 225, 0.9);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            border: none;
+            border-radius: 999px;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            padding: 14px 18px;
+            white-space: nowrap;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .status-badge:hover,
+        .status-badge:focus-visible {
+            transform: translateY(-1px);
+            opacity: 0.94;
+            outline: none;
+        }
+
+        .status-normal {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .status-fault {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .status-maintenance {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+        }
+
+        .marquee-panel {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+            min-height: 56px;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .marquee-button {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            color: inherit;
+        }
+
+        .marquee-button:hover,
+        .marquee-button:focus-visible {
+            background: rgba(255, 255, 255, 0.24);
+            outline: none;
+        }
+
+        .marquee-display {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-height: 56px;
+            padding: 0 56px 0 18px;
+            cursor: text;
+        }
+
+        .marquee-display.paused .marquee-track {
+            animation-play-state: paused;
+        }
+
+        .marquee-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 48px;
+            min-width: max-content;
+            white-space: nowrap;
+            animation: marquee 16s linear infinite;
+        }
+
+        .marquee-text {
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+        }
+
+        .marquee-input {
+            display: none;
+            width: 100%;
+            min-height: 56px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            padding: 0 56px 0 18px;
+        }
+
+        .marquee-panel.editing .marquee-display {
+            display: none;
+        }
+
+        .marquee-panel.editing .marquee-input {
+            display: block;
+        }
+
+        .calendar-panel {
+            padding: 24px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .calendar-kicker {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 0.92rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .calendar-title {
+            margin: 0;
+            font-size: clamp(1.75rem, 4vw, 2.6rem);
+            font-weight: 700;
+        }
+
+        .calendar-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--card);
+            color: var(--text);
+            font-size: 1.4rem;
+        }
+
+        .month-label {
+            min-width: 120px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .weekday-row,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 700;
+            color: var(--muted);
+            padding: 10px 0;
+        }
+
+        .calendar-grid {
+            grid-auto-rows: minmax(120px, 1fr);
+        }
+
+        .day-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            width: 100%;
+            min-height: 120px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--card);
+            padding: 12px;
+            text-align: left;
+            transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .day-cell:hover,
+        .day-cell:focus-visible {
+            border-color: var(--primary);
+            box-shadow: 0 18px 35px rgba(37, 99, 235, 0.16);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .day-cell.is-outside {
+            opacity: 0.45;
+        }
+
+        .day-cell.is-today {
+            border-color: var(--primary);
+            background: linear-gradient(180deg, #eff6ff, #ffffff);
+        }
+
+        .day-number {
+            font-weight: 700;
+        }
+
+        .booking-chips {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 0;
+        }
+
+        .booking-chip {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: #1d4ed8;
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .booking-empty {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .modal[hidden] {
+            display: none;
+        }
+
+        .modal-panel {
+            width: min(900px, 100%);
+            max-height: min(85vh, 900px);
+            overflow: auto;
+            padding: 24px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close,
+        .delete-booking,
+        .secondary-button,
+        .primary-button,
+        .add-booking {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--card);
+            color: var(--text);
+            padding: 10px 14px;
+        }
+
+        .primary-button {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .add-booking {
+            margin-top: 12px;
+            color: #1d4ed8;
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        .booking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .booking-card {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px;
+            background: #fff;
+        }
+
+        .booking-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .booking-card-title {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .booking-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field--full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px 12px;
+        }
+
+        .time-range {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-separator {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .empty-state {
+            border: 1px dashed var(--line);
+            border-radius: 16px;
+            padding: 18px;
+            color: var(--muted);
+            background: #fff;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 820px) {
+            .top-bar,
+            .calendar-header,
+            .modal-header,
+            .modal-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .booking-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field--full {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .dashboard {
+                padding: 16px;
+            }
+
+            .top-bar,
+            .calendar-panel,
+            .modal-panel {
+                border-radius: 18px;
+            }
+
+            .weekday-row,
+            .calendar-grid {
+                gap: 8px;
+            }
+
+            .calendar-grid {
+                grid-auto-rows: minmax(100px, 1fr);
+            }
+
+            .day-cell {
+                min-height: 100px;
+                padding: 10px;
+            }
+
+            .booking-chip {
+                font-size: 0.74rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <main class="container">
-        <section class="header">
-            <h1>Xray Dashboard</h1>
-            <p>Quick overview of booking and machine status.</p>
+    <main class="dashboard">
+        <section class="top-bar">
+            <button id="statusToggle" class="status-badge" type="button" aria-label="切換機況"></button>
+            <div id="marqueePanel" class="marquee-panel">
+                <button id="marqueeEditButton" class="marquee-button" type="button" aria-label="編輯跑馬燈">✏️</button>
+                <div id="marqueeDisplay" class="marquee-display" tabindex="0" role="button" aria-label="編輯跑馬燈文字">
+                    <div class="marquee-track">
+                        <span id="marqueeText" class="marquee-text"></span>
+                        <span id="marqueeTextClone" class="marquee-text" aria-hidden="true"></span>
+                    </div>
+                </div>
+                <input id="marqueeInput" class="marquee-input" type="text" maxlength="120" aria-label="跑馬燈文字">
+            </div>
         </section>
-        <section class="cards">
-            {% for metric in metrics %}
-            <article class="card">
-                <div class="label">{{ metric.label }}</div>
-                <div class="value">{{ metric.value }}</div>
-            </article>
-            {% endfor %}
+
+        <section class="calendar-panel">
+            <div class="calendar-header">
+                <div>
+                    <p class="calendar-kicker">Xray dashboard</p>
+                    <h1 class="calendar-title">月行事曆</h1>
+                </div>
+                <div class="calendar-nav">
+                    <button id="prevMonth" type="button" aria-label="上個月">‹</button>
+                    <div id="monthLabel" class="month-label"></div>
+                    <button id="nextMonth" type="button" aria-label="下個月">›</button>
+                </div>
+            </div>
+
+            <div class="weekday-row" aria-hidden="true">
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+                <div class="weekday">Sun</div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid" aria-label="預約月曆"></div>
         </section>
     </main>
+
+    <div id="bookingModal" class="modal" hidden>
+        <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalDateLabel">
+            <div class="modal-header">
+                <h2 id="modalDateLabel" class="modal-title"></h2>
+                <button id="closeModal" class="modal-close" type="button" aria-label="關閉">✕</button>
+            </div>
+            <div id="bookingList" class="booking-list"></div>
+            <button id="addBooking" class="add-booking" type="button">＋ Add booking</button>
+            <div class="modal-actions">
+                <button id="cancelModal" class="secondary-button" type="button">Cancel</button>
+                <button id="saveBookings" class="primary-button" type="button">Save</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const STATUS_KEY = 'xray_machine_status';
+            const MARQUEE_KEY = 'xray_marquee_text';
+            const BOOKINGS_KEY = 'xray_bookings';
+            const DEFAULT_MARQUEE = '「歡迎使用 Xray 預約系統」';
+            const STATUSES = [
+                { value: '正常', className: 'status-normal' },
+                { value: '故障', className: 'status-fault' },
+                { value: '維修', className: 'status-maintenance' }
+            ];
+            const TIME_OPTIONS = buildTimeOptions();
+
+            const statusToggle = document.getElementById('statusToggle');
+            const marqueePanel = document.getElementById('marqueePanel');
+            const marqueeDisplay = document.getElementById('marqueeDisplay');
+            const marqueeEditButton = document.getElementById('marqueeEditButton');
+            const marqueeText = document.getElementById('marqueeText');
+            const marqueeTextClone = document.getElementById('marqueeTextClone');
+            const marqueeInput = document.getElementById('marqueeInput');
+            const monthLabel = document.getElementById('monthLabel');
+            const calendarGrid = document.getElementById('calendarGrid');
+            const prevMonthButton = document.getElementById('prevMonth');
+            const nextMonthButton = document.getElementById('nextMonth');
+            const bookingModal = document.getElementById('bookingModal');
+            const bookingList = document.getElementById('bookingList');
+            const modalDateLabel = document.getElementById('modalDateLabel');
+            const closeModalButton = document.getElementById('closeModal');
+            const cancelModalButton = document.getElementById('cancelModal');
+            const saveBookingsButton = document.getElementById('saveBookings');
+            const addBookingButton = document.getElementById('addBooking');
+
+            let currentStatus = loadStatus();
+            let currentMarquee = loadMarquee();
+            let currentMonth = new Date();
+            let bookingsByDate = loadBookings();
+            let selectedDateKey = '';
+            let draftBookings = [];
+            let shouldSaveMarqueeOnBlur = true;
+
+            currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+
+            function buildTimeOptions() {
+                const options = [];
+                for (let hour = 0; hour < 24; hour += 1) {
+                    for (let minute = 0; minute < 60; minute += 30) {
+                        options.push(String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0'));
+                    }
+                }
+                return options;
+            }
+
+            function safeParse(key, fallback) {
+                try {
+                    const rawValue = localStorage.getItem(key);
+                    return rawValue ? JSON.parse(rawValue) : fallback;
+                } catch (error) {
+                    return fallback;
+                }
+            }
+
+            function loadStatus() {
+                const savedStatus = localStorage.getItem(STATUS_KEY);
+                return STATUSES.find((status) => status.value === savedStatus) || STATUSES[0];
+            }
+
+            function loadMarquee() {
+                const savedText = localStorage.getItem(MARQUEE_KEY);
+                return savedText && savedText.trim() ? savedText.trim() : DEFAULT_MARQUEE;
+            }
+
+            function loadBookings() {
+                const rawBookings = safeParse(BOOKINGS_KEY, {});
+                if (!rawBookings || typeof rawBookings !== 'object' || Array.isArray(rawBookings)) {
+                    return {};
+                }
+
+                return Object.keys(rawBookings).reduce((result, key) => {
+                    result[key] = sanitizeBookings(rawBookings[key]);
+                    return result;
+                }, {});
+            }
+
+            function sanitizeBookings(entries) {
+                if (!Array.isArray(entries)) {
+                    return [];
+                }
+
+                return entries.map(normalizeBooking).filter(Boolean).sort(compareBookings);
+            }
+
+            function normalizeBooking(entry) {
+                if (!entry || typeof entry !== 'object') {
+                    return null;
+                }
+
+                const booking = {
+                    user: typeof entry.user === 'string' ? entry.user.trim() : '',
+                    start: TIME_OPTIONS.includes(entry.start) ? entry.start : '',
+                    end: TIME_OPTIONS.includes(entry.end) ? entry.end : '',
+                    analysis: typeof entry.analysis === 'string' ? entry.analysis.trim() : ''
+                };
+
+                if (!booking.user && !booking.start && !booking.end && !booking.analysis) {
+                    return null;
+                }
+
+                if (booking.start && booking.end && toMinutes(booking.end) <= toMinutes(booking.start)) {
+                    const nextIndex = TIME_OPTIONS.indexOf(booking.start) + 1;
+                    booking.end = TIME_OPTIONS[nextIndex] || '';
+                }
+
+                if (booking.start && booking.end && toMinutes(booking.end) <= toMinutes(booking.start)) {
+                    booking.end = '';
+                }
+
+                return booking;
+            }
+
+            function compareBookings(left, right) {
+                const leftValue = left.start ? toMinutes(left.start) : Number.MAX_SAFE_INTEGER;
+                const rightValue = right.start ? toMinutes(right.start) : Number.MAX_SAFE_INTEGER;
+                return leftValue - rightValue;
+            }
+
+            function toMinutes(value) {
+                const parts = value.split(':').map(Number);
+                return parts[0] * 60 + parts[1];
+            }
+
+            function toDateKey(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return year + '-' + month + '-' + day;
+            }
+
+            function formatDateLabel(dateKey) {
+                const parts = dateKey.split('-');
+                return parts[0] + ' 年 ' + Number(parts[1]) + ' 月 ' + Number(parts[2]) + ' 日';
+            }
+
+            function saveBookingsState() {
+                localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookingsByDate));
+            }
+
+            function renderStatus() {
+                statusToggle.className = 'status-badge ' + currentStatus.className;
+                statusToggle.textContent = '機況: ' + currentStatus.value + ' ▾';
+            }
+
+            function cycleStatus() {
+                const currentIndex = STATUSES.findIndex((status) => status.value === currentStatus.value);
+                currentStatus = STATUSES[(currentIndex + 1) % STATUSES.length];
+                localStorage.setItem(STATUS_KEY, currentStatus.value);
+                renderStatus();
+            }
+
+            function renderMarquee() {
+                marqueeText.textContent = currentMarquee;
+                marqueeTextClone.textContent = currentMarquee;
+                marqueeInput.value = currentMarquee;
+            }
+
+            function beginMarqueeEdit() {
+                shouldSaveMarqueeOnBlur = true;
+                marqueePanel.classList.add('editing');
+                marqueeDisplay.classList.add('paused');
+                marqueeInput.value = currentMarquee;
+                marqueeInput.focus();
+                marqueeInput.select();
+            }
+
+            function finishMarqueeEdit(saveChanges) {
+                shouldSaveMarqueeOnBlur = true;
+                if (saveChanges) {
+                    const updatedText = marqueeInput.value.trim() || DEFAULT_MARQUEE;
+                    currentMarquee = updatedText;
+                    localStorage.setItem(MARQUEE_KEY, currentMarquee);
+                    renderMarquee();
+                }
+
+                marqueePanel.classList.remove('editing');
+                marqueeDisplay.classList.remove('paused');
+            }
+
+            function getBookingsForDate(dateKey) {
+                return bookingsByDate[dateKey] ? bookingsByDate[dateKey].slice() : [];
+            }
+
+            function renderCalendar() {
+                const year = currentMonth.getFullYear();
+                const month = currentMonth.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const startOffset = (firstDay.getDay() + 6) % 7;
+                const gridStart = new Date(year, month, 1 - startOffset);
+                const todayKey = toDateKey(new Date());
+
+                monthLabel.textContent = year + ' 年 ' + (month + 1) + ' 月';
+                calendarGrid.innerHTML = '';
+
+                for (let index = 0; index < 42; index += 1) {
+                    const date = new Date(gridStart);
+                    date.setDate(gridStart.getDate() + index);
+                    const dateKey = toDateKey(date);
+                    const bookings = getBookingsForDate(dateKey);
+                    const isCurrentMonth = date.getMonth() === month;
+                    const dayCell = document.createElement('button');
+                    const dayNumber = document.createElement('span');
+                    const chips = document.createElement('div');
+
+                    dayCell.type = 'button';
+                    dayCell.className = 'day-cell';
+                    dayCell.setAttribute('aria-label', formatDateLabel(dateKey));
+
+                    if (!isCurrentMonth) {
+                        dayCell.classList.add('is-outside');
+                    }
+
+                    if (dateKey === todayKey) {
+                        dayCell.classList.add('is-today');
+                    }
+
+                    dayCell.addEventListener('click', function () {
+                        openModal(dateKey);
+                    });
+
+                    dayNumber.className = 'day-number';
+                    dayNumber.textContent = String(date.getDate());
+                    dayCell.appendChild(dayNumber);
+
+                    chips.className = 'booking-chips';
+
+                    if (bookings.length) {
+                        bookings.forEach(function (booking) {
+                            const chip = document.createElement('div');
+                            chip.className = 'booking-chip';
+                            chip.textContent = formatBookingSummary(booking);
+                            chips.appendChild(chip);
+                        });
+                    } else if (isCurrentMonth) {
+                        const empty = document.createElement('div');
+                        empty.className = 'booking-empty';
+                        empty.textContent = '尚無預約';
+                        chips.appendChild(empty);
+                    }
+
+                    dayCell.appendChild(chips);
+                    calendarGrid.appendChild(dayCell);
+                }
+            }
+
+            function formatBookingSummary(booking) {
+                const user = booking.user || '未命名';
+                let timeLabel = '時間待定';
+
+                if (booking.start && booking.end) {
+                    timeLabel = booking.start + '–' + booking.end;
+                } else if (booking.start) {
+                    timeLabel = booking.start;
+                }
+
+                return timeLabel + ' · ' + user;
+            }
+
+            function createSelect(selectedValue, ariaLabel) {
+                const select = document.createElement('select');
+                const placeholder = document.createElement('option');
+
+                select.setAttribute('aria-label', ariaLabel);
+                placeholder.value = '';
+                placeholder.textContent = ariaLabel;
+                select.appendChild(placeholder);
+
+                TIME_OPTIONS.forEach(function (time) {
+                    const option = document.createElement('option');
+                    option.value = time;
+                    option.textContent = time;
+                    if (time === selectedValue) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+
+                if (!selectedValue) {
+                    select.value = '';
+                }
+
+                return select;
+            }
+
+            function createField(labelText, control, fullWidth) {
+                const wrapper = document.createElement('div');
+                const label = document.createElement('label');
+
+                wrapper.className = fullWidth ? 'field field--full' : 'field';
+                label.textContent = labelText;
+                wrapper.appendChild(label);
+                wrapper.appendChild(control);
+                return wrapper;
+            }
+
+            function renderBookingList() {
+                bookingList.innerHTML = '';
+
+                if (!draftBookings.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.textContent = '目前沒有預約，點擊 Add booking 來新增。';
+                    bookingList.appendChild(empty);
+                    return;
+                }
+
+                draftBookings.forEach(function (booking, index) {
+                    const card = document.createElement('article');
+                    const header = document.createElement('div');
+                    const title = document.createElement('h3');
+                    const deleteButton = document.createElement('button');
+                    const formGrid = document.createElement('div');
+                    const userInput = document.createElement('input');
+                    const timeRange = document.createElement('div');
+                    const startSelect = createSelect(booking.start, '開始時間');
+                    const separator = document.createElement('span');
+                    const endSelect = createSelect(booking.end, '結束時間');
+                    const analysisInput = document.createElement('textarea');
+
+                    card.className = 'booking-card';
+                    header.className = 'booking-card-header';
+                    title.className = 'booking-card-title';
+                    title.textContent = 'Booking ' + (index + 1);
+
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'delete-booking';
+                    deleteButton.textContent = '🗑 Delete';
+                    deleteButton.addEventListener('click', function () {
+                        draftBookings.splice(index, 1);
+                        renderBookingList();
+                    });
+
+                    header.appendChild(title);
+                    header.appendChild(deleteButton);
+                    card.appendChild(header);
+
+                    formGrid.className = 'booking-form-grid';
+
+                    userInput.type = 'text';
+                    userInput.value = booking.user;
+                    userInput.placeholder = '例如：王小明';
+                    userInput.addEventListener('input', function (event) {
+                        draftBookings[index].user = event.target.value;
+                    });
+                    formGrid.appendChild(createField('使用者', userInput, false));
+
+                    timeRange.className = 'time-range';
+                    separator.className = 'time-separator';
+                    separator.textContent = '至';
+                    startSelect.addEventListener('change', function (event) {
+                        draftBookings[index].start = event.target.value;
+                    });
+                    endSelect.addEventListener('change', function (event) {
+                        draftBookings[index].end = event.target.value;
+                    });
+                    timeRange.appendChild(startSelect);
+                    timeRange.appendChild(separator);
+                    timeRange.appendChild(endSelect);
+                    formGrid.appendChild(createField('使用時間', timeRange, false));
+
+                    analysisInput.rows = 4;
+                    analysisInput.value = booking.analysis;
+                    analysisInput.placeholder = '輸入分析內容';
+                    analysisInput.addEventListener('input', function (event) {
+                        draftBookings[index].analysis = event.target.value;
+                    });
+                    formGrid.appendChild(createField('分析內容', analysisInput, true));
+
+                    card.appendChild(formGrid);
+                    bookingList.appendChild(card);
+                });
+            }
+
+            function openModal(dateKey) {
+                selectedDateKey = dateKey;
+                draftBookings = getBookingsForDate(dateKey).map(function (booking) {
+                    return {
+                        user: booking.user,
+                        start: booking.start,
+                        end: booking.end,
+                        analysis: booking.analysis
+                    };
+                });
+                modalDateLabel.textContent = formatDateLabel(dateKey);
+                renderBookingList();
+                bookingModal.hidden = false;
+            }
+
+            function closeModal() {
+                bookingModal.hidden = true;
+                selectedDateKey = '';
+                draftBookings = [];
+            }
+
+            function addBooking() {
+                draftBookings.push({
+                    user: '',
+                    start: '',
+                    end: '',
+                    analysis: ''
+                });
+                renderBookingList();
+            }
+
+            function saveBookings() {
+                const normalized = sanitizeBookings(draftBookings);
+
+                if (normalized.length) {
+                    bookingsByDate[selectedDateKey] = normalized;
+                } else {
+                    delete bookingsByDate[selectedDateKey];
+                }
+
+                saveBookingsState();
+                closeModal();
+                renderCalendar();
+            }
+
+            statusToggle.addEventListener('click', cycleStatus);
+
+            marqueeDisplay.addEventListener('click', beginMarqueeEdit);
+            marqueeDisplay.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    beginMarqueeEdit();
+                }
+            });
+            marqueeEditButton.addEventListener('click', beginMarqueeEdit);
+            marqueeInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    finishMarqueeEdit(true);
+                } else if (event.key === 'Escape') {
+                    shouldSaveMarqueeOnBlur = false;
+                    finishMarqueeEdit(false);
+                }
+            });
+            marqueeInput.addEventListener('blur', function () {
+                finishMarqueeEdit(shouldSaveMarqueeOnBlur);
+            });
+
+            prevMonthButton.addEventListener('click', function () {
+                currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+                renderCalendar();
+            });
+            nextMonthButton.addEventListener('click', function () {
+                currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+                renderCalendar();
+            });
+
+            addBookingButton.addEventListener('click', addBooking);
+            saveBookingsButton.addEventListener('click', saveBookings);
+            cancelModalButton.addEventListener('click', closeModal);
+            closeModalButton.addEventListener('click', closeModal);
+            bookingModal.addEventListener('click', function (event) {
+                if (event.target === bookingModal) {
+                    closeModal();
+                }
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !bookingModal.hidden) {
+                    closeModal();
+                }
+            });
+
+            renderStatus();
+            renderMarquee();
+            renderCalendar();
+        }());
+    </script>
 </body>
 </html>
