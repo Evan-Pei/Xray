@@ -34,4 +34,5 @@ def test_dashboard_route_renders_html():
 
     assert response.status_code == 200
     assert response.mimetype == "text/html"
-    assert b"xray" in response.data.lower() or b"dashboard" in response.data.lower()
+    assert b"xray_bookings" in response.data
+    assert "月行事曆".encode("utf-8") in response.data

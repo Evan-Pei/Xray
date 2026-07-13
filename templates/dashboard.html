@@ -516,7 +516,7 @@
         <section class="calendar-panel">
             <div class="calendar-header">
                 <div>
-                    <p class="calendar-kicker">Xray dashboard</p>
+                    <p class="calendar-kicker">Xray 預約系統</p>
                     <h1 class="calendar-title">月行事曆</h1>
                 </div>
                 <div class="calendar-nav">
@@ -546,10 +546,10 @@
                 <button id="closeModal" class="modal-close" type="button" aria-label="關閉">✕</button>
             </div>
             <div id="bookingList" class="booking-list"></div>
-            <button id="addBooking" class="add-booking" type="button">＋ Add booking</button>
+            <button id="addBooking" class="add-booking" type="button">+ 新增預約</button>
             <div class="modal-actions">
-                <button id="cancelModal" class="secondary-button" type="button">Cancel</button>
-                <button id="saveBookings" class="primary-button" type="button">Save</button>
+                <button id="cancelModal" class="secondary-button" type="button">取消</button>
+                <button id="saveBookings" class="primary-button" type="button">儲存</button>
             </div>
         </section>
     </div>
@@ -663,11 +663,8 @@
 
                 if (booking.start && booking.end && toMinutes(booking.end) <= toMinutes(booking.start)) {
                     const nextIndex = TIME_OPTIONS.indexOf(booking.start) + 1;
-                    booking.end = TIME_OPTIONS[nextIndex] || '';
-                }
-
-                if (booking.start && booking.end && toMinutes(booking.end) <= toMinutes(booking.start)) {
-                    booking.end = '';
+                    const nextTime = TIME_OPTIONS[nextIndex] || '';
+                    booking.end = nextTime && toMinutes(nextTime) > toMinutes(booking.start) ? nextTime : '';
                 }
 
                 return booking;
@@ -862,7 +859,7 @@
                 if (!draftBookings.length) {
                     const empty = document.createElement('div');
                     empty.className = 'empty-state';
-                    empty.textContent = '目前沒有預約，點擊 Add booking 來新增。';
+                    empty.textContent = '目前沒有預約，點擊「新增預約」來建立資料。';
                     bookingList.appendChild(empty);
                     return;
                 }
@@ -883,11 +880,11 @@
                     card.className = 'booking-card';
                     header.className = 'booking-card-header';
                     title.className = 'booking-card-title';
-                    title.textContent = 'Booking ' + (index + 1);
+                    title.textContent = '預約 ' + (index + 1);
 
                     deleteButton.type = 'button';
                     deleteButton.className = 'delete-booking';
-                    deleteButton.textContent = '🗑 Delete';
+                    deleteButton.textContent = '🗑 刪除';
                     deleteButton.addEventListener('click', function () {
                         draftBookings.splice(index, 1);
                         renderBookingList();
