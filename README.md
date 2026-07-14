@@ -7,6 +7,7 @@ A Python-based tool booking and calendaring webpage for managing appointments an
 - **Dashboard** (`/dashboard`) — summary metrics for active machines, scheduled bookings, and pending requests
 - **狀態視窗 – Machine Status Panel** — live-style status view on the dashboard showing each machine as *online*, *maintenance*, or *offline*
 - **行事曆 – Schedule Calendar** (`/calendar`) — monthly calendar grid displaying all booked time-slots for X-ray resources
+- **Admin Backend** (`/auth/login` -> `/admin/machines`) — authenticated machine record management with list/create/edit/delete/status toggle
 - Web-based interface with server-rendered HTML/CSS (no heavy frontend frameworks)
 
 ## Prerequisites
@@ -66,11 +67,13 @@ The application is accessible at `http://localhost:5000`.
 2. From the **Home** page, click **Dashboard** or **行事曆 Calendar**
 3. The **Dashboard** shows summary metrics and the **狀態視窗** (machine status panel) with real-time-style status badges
 4. The **行事曆 Calendar** page (`/calendar`) shows a monthly grid with all scheduled bookings
+5. The **Admin Backend** allows editable machine management after login (`ADMIN_USERNAME` / `ADMIN_PASSWORD`; in testing only, default credentials are `admin` / `admin123`)
 
 ## Configuration
 
 - Modify configuration settings in `config.py` or environment variables as needed
 - Database credentials and API keys should be stored in a `.env` file (do not commit this file)
+- For admin login, set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in your environment (`ADMIN_PASSWORD` is required outside tests)
 
 ## Development
 
