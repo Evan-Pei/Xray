@@ -5,6 +5,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+MACHINE_STATUS_ONLINE = "online"
+MACHINE_STATUS_OFFLINE = "offline"
+MACHINE_VALID_STATUSES = {MACHINE_STATUS_ONLINE, MACHINE_STATUS_OFFLINE}
 
 
 class User(UserMixin, db.Model):
@@ -24,7 +27,7 @@ class Machine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(255), nullable=False, default="")
-    status = db.Column(db.String(20), nullable=False, default="online")
+    status = db.Column(db.String(20), nullable=False, default=MACHINE_STATUS_ONLINE)
 
 
 @login_manager.user_loader

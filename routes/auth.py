@@ -11,7 +11,7 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin.machine_list'))
 
-    error = ''
+    error = None
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')

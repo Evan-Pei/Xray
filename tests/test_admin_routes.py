@@ -1,12 +1,17 @@
 from pathlib import Path
+import os
 import sys
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
 from app import create_app
 from models import Machine, db
+
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
 
 
 @pytest.fixture()
@@ -29,7 +34,7 @@ def client(app):
 def _login(client):
     return client.post(
         "/auth/login",
-        data={"username": "admin", "password": "admin123"},
+        data={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD},
         follow_redirects=True,
     )
 

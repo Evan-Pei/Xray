@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, current_app
 
 from config import Config
 from models import Machine, User, db, login_manager
@@ -47,11 +47,19 @@ def _seed_machines():
 
 
 def _seed_admin_user():
-    if User.query.filter_by(username=os.environ.get("ADMIN_USERNAME", "admin")).first():
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    if User.query.filter_by(username=admin_username).first():
         return
 
-    user = User(username=os.environ.get("ADMIN_USERNAME", "admin"), is_admin=True)
-    user.set_password(os.environ.get("ADMIN_PASSWORD", "admin123"))
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    if not admin_password:
+        if current_app.config.get("TESTING", False):
+            admin_password = "admin123"
+        else:
+            raise RuntimeError("ADMIN_PASSWORD must be set before starting the application.")
+
+    user = User(username=admin_username, is_admin=True)
+    user.set_password(admin_password)
     db.session.add(user)
     db.session.commit()
 

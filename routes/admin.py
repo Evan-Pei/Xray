@@ -1,11 +1,15 @@
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from models import Machine, db
+from models import (
+    MACHINE_STATUS_OFFLINE,
+    MACHINE_STATUS_ONLINE,
+    MACHINE_VALID_STATUSES,
+    Machine,
+    db,
+)
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-
-
 @admin_bp.route("/", methods=["GET"])
 @login_required
 def index():
@@ -18,16 +22,25 @@ def machine_list():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
-        status = request.form.get("status", "online")
+        requested_status = request.form.get("status")
+        status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
 
-        if name and status in {"online", "offline"}:
+        if name and description and status:
             db.session.add(Machine(name=name, description=description, status=status))
             db.session.commit()
+            flash("Machine created successfully.")
+        else:
+            flash("Please provide valid name, description, and status.", "error")
 
         return redirect(url_for("admin.machine_list"))
 
     machines = Machine.query.order_by(Machine.id.asc()).all()
-    return render_template("admin/machines.html", machines=machines, current_user=current_user)
+    return render_template(
+        "admin/machines.html",
+        machines=machines,
+        current_user=current_user,
+        statuses=sorted(MACHINE_VALID_STATUSES),
+    )
 
 
 @admin_bp.route("/machines/<int:machine_id>/edit", methods=["GET", "POST"])
@@ -40,15 +53,20 @@ def edit_machine(machine_id: int):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
-        status = request.form.get("status", "online")
-        if name and status in {"online", "offline"}:
+        requested_status = request.form.get("status")
+        status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
+        if name and description and status:
             machine.name = name
             machine.description = description
             machine.status = status
             db.session.commit()
+            flash("Machine updated successfully.")
             return redirect(url_for("admin.machine_list"))
+        flash("Please provide valid name, description, and status.", "error")
 
-    return render_template("admin/edit_machine.html", machine=machine)
+    return render_template(
+        "admin/edit_machine.html", machine=machine, statuses=sorted(MACHINE_VALID_STATUSES)
+    )
 
 
 @admin_bp.route("/machines/<int:machine_id>/delete", methods=["POST"])
@@ -60,6 +78,7 @@ def delete_machine(machine_id: int):
 
     db.session.delete(machine)
     db.session.commit()
+    flash("Machine deleted.")
     return redirect(url_for("admin.machine_list"))
 
 
@@ -70,6 +89,9 @@ def toggle_machine_status(machine_id: int):
     if machine is None:
         abort(404)
 
-    machine.status = "offline" if machine.status == "online" else "online"
+    machine.status = (
+        MACHINE_STATUS_OFFLINE if machine.status == MACHINE_STATUS_ONLINE else MACHINE_STATUS_ONLINE
+    )
     db.session.commit()
+    flash("Machine status updated.")
     return redirect(url_for("admin.machine_list"))

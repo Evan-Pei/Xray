@@ -24,6 +24,9 @@
         .actions form { margin: 0; }
         .btn-muted { background: #475569; }
         .btn-danger { background: #b91c1c; }
+        .flash { margin-top: 16px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+        .flash:not(.error) { background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
@@ -35,6 +38,10 @@
             </div>
             <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
         </section>
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
 
         <section class="panel">
             <h2>Create New Machine</h2>
@@ -50,8 +57,9 @@
                 <div>
                     <label for="status">Status</label>
                     <select id="status" name="status">
-                        <option value="online">online</option>
-                        <option value="offline">offline</option>
+                        {% for status in statuses %}
+                        <option value="{{ status }}">{{ status }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <button type="submit">Create</button>
@@ -83,7 +91,7 @@
                                 <form method="post" action="{{ url_for('admin.toggle_machine_status', machine_id=machine.id) }}">
                                     <button class="btn-muted" type="submit">Toggle Status</button>
                                 </form>
-                                <form method="post" action="{{ url_for('admin.delete_machine', machine_id=machine.id) }}">
+                                <form method="post" action="{{ url_for('admin.delete_machine', machine_id=machine.id) }}" onsubmit="return confirm('Delete this machine?');">
                                     <button class="btn-danger" type="submit">Delete</button>
                                 </form>
                             </div>

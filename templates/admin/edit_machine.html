@@ -14,11 +14,16 @@
         button, .back { border: none; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
         button { background: #2563eb; color: #fff; }
         .back { background: #475569; color: #fff; }
+        .flash { margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body>
     <main class="container">
         <h1>Edit Machine #{{ machine.id }}</h1>
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
         <form method="post">
             <label for="name">Name</label>
             <input id="name" name="name" value="{{ machine.name }}" required>
@@ -26,8 +31,9 @@
             <input id="description" name="description" value="{{ machine.description }}" required>
             <label for="status">Status</label>
             <select id="status" name="status">
-                <option value="online" {% if machine.status == 'online' %}selected{% endif %}>online</option>
-                <option value="offline" {% if machine.status == 'offline' %}selected{% endif %}>offline</option>
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if machine.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
             </select>
             <div class="row">
                 <button type="submit">Save</button>
