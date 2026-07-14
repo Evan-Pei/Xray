@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Xray | Edit Machine</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
+        .container { max-width: 640px; margin: 50px auto; padding: 24px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+        h1 { margin-top: 0; }
+        label { display: block; margin-top: 12px; font-weight: 600; }
+        input, select { width: 100%; box-sizing: border-box; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; }
+        .row { display: flex; gap: 10px; margin-top: 16px; }
+        button, .back { border: none; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+        button { background: #2563eb; color: #fff; }
+        .back { background: #475569; color: #fff; }
+        .flash { margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>Edit Machine #{{ machine.id }}</h1>
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        <form method="post">
+            <label for="name">Name</label>
+            <input id="name" name="name" value="{{ machine.name }}" required>
+            <label for="description">Description</label>
+            <input id="description" name="description" value="{{ machine.description }}" required>
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if machine.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+            <div class="row">
+                <button type="submit">Save</button>
+                <a class="back" href="{{ url_for('admin.machine_list') }}">Back</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>
