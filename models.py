@@ -30,6 +30,16 @@ class Machine(db.Model):
     status = db.Column(db.String(20), nullable=False, default=MACHINE_STATUS_ONLINE)
 
 
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    day = db.Column(db.Integer, nullable=False)
+    time = db.Column(db.String(5), nullable=False)
+    machine = db.Column(db.String(120), nullable=False)
+    patient = db.Column(db.String(120), nullable=False)
+
+
 @login_manager.user_loader
 def load_user(user_id: str):
     return db.session.get(User, int(user_id))
