@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}登入 | Xray{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <h2>登入</h2>
+    <form method="post" class="auth-form">
+      <label>帳號<input type="text" name="username" required></label>
+      <label>密碼<input type="password" name="password" required></label>
+      <button type="submit">登入</button>
+    </form>
+    <p>沒有帳號？<a href="{{ url_for('auth.register') }}">立即註冊</a></p>
+  </section>
+{% endblock %}

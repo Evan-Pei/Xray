@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="layout">
+    <aside class="panel">
+      <h2>申請管理</h2>
+      <form id="booking-form" class="booking-form">
+        <input type="hidden" id="booking-id">
+        <label>申請標題<input id="title" type="text" placeholder="例如：樣品拍攝"></label>
+        <label>機台
+          <select id="machine_id" required></select>
+        </label>
+        <label>開始時間<input id="start" type="datetime-local" required></label>
+        <label>結束時間<input id="end" type="datetime-local" required></label>
+        <label>用途說明<textarea id="purpose" rows="4" required></textarea></label>
+        <label>狀態
+          <select id="status">
+            <option value="pending">待處理</option>
+            <option value="approved">已核准</option>
+            <option value="completed">已完成</option>
+            <option value="cancelled">已取消</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button type="submit">儲存申請</button>
+          <button type="button" id="delete-button" class="danger" disabled>刪除申請</button>
+          <button type="button" id="reset-button" class="secondary">清除</button>
+        </div>
+      </form>
+      <p id="form-message" class="message"></p>
+      <section>
+        <h3>修改歷史</h3>
+        <ul id="history-list" class="history-list">
+          <li>選擇自己的申請以查看歷史。</li>
+        </ul>
+      </section>
+    </aside>
+    <section class="calendar-panel">
+      <div id="calendar"></div>
+    </section>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
