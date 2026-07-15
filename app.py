@@ -63,7 +63,7 @@ def _seed_admin_user():
                 admin_password,
             )
 
-    user = User(username=admin_username, is_admin=True)
+    user = User(username=admin_username)
     user.set_password(admin_password)
     db.session.add(user)
     db.session.commit()
