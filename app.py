@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from flask import Flask, current_app
 
@@ -56,7 +57,11 @@ def _seed_admin_user():
         if current_app.config.get("TESTING", False):
             admin_password = "admin123"
         else:
-            raise RuntimeError("ADMIN_PASSWORD must be set before starting the application.")
+            admin_password = secrets.token_urlsafe(18)
+            current_app.logger.warning(
+                "ADMIN_PASSWORD is not set. Generated temporary admin password for local development: %s",
+                admin_password,
+            )
 
     user = User(username=admin_username, is_admin=True)
     user.set_password(admin_password)
