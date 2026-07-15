@@ -53,6 +53,7 @@ def calendar_view():
 
     edit_id = request.args.get('edit_id', type=int)
     edit_booking = db.session.get(Booking, edit_id) if edit_id else None
+    month_days = calendar.monthrange(year, month)[1]
 
     return render_template(
         'calendar.html',
@@ -62,6 +63,7 @@ def calendar_view():
         bookings_by_day=bookings_by_day,
         machine_names=machine_names,
         edit_booking=edit_booking,
+        month_days=month_days,
     )
 
 
@@ -74,9 +76,10 @@ def create_booking():
 
     today = date.today()
     year, month = today.year, today.month
+    month_days = calendar.monthrange(year, month)[1]
 
-    if not (day_str.isdigit() and 1 <= int(day_str) <= 31) or not time_str or not machine or not patient:
-        flash("Please provide a valid day (1-31), time, machine, and patient name.", "error")
+    if not (day_str.isdigit() and 1 <= int(day_str) <= month_days) or not time_str or not machine or not patient:
+        flash(f"Please provide a valid day (1-{month_days}), time, machine, and patient name.", "error")
         return redirect(url_for('web.calendar_view'))
 
     db.session.add(Booking(
@@ -99,8 +102,12 @@ def edit_booking(booking_id: int):
     machine = request.form.get('machine', '').strip()
     patient = request.form.get('patient', '').strip()
 
-    if not (day_str.isdigit() and 1 <= int(day_str) <= 31) or not time_str or not machine or not patient:
-        flash("Please provide a valid day (1-31), time, machine, and patient name.", "error")
+    today = date.today()
+    year, month = today.year, today.month
+    month_days = calendar.monthrange(year, month)[1]
+
+    if not (day_str.isdigit() and 1 <= int(day_str) <= month_days) or not time_str or not machine or not patient:
+        flash(f"Please provide a valid day (1-{month_days}), time, machine, and patient name.", "error")
         return redirect(url_for('web.calendar_view', edit_id=booking_id))
 
     booking.day = int(day_str)

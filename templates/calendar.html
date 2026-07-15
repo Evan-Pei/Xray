@@ -123,7 +123,7 @@
                 <div class="form-row">
                     <div>
                         <label for="day">Day</label>
-                        <input id="day" name="day" type="number" min="1" max="31" required
+                        <input id="day" name="day" type="number" min="1" max="{{ month_days }}" required
                                value="{{ edit_booking.day if edit_booking else '' }}" placeholder="e.g. 14">
                     </div>
                     <div>
