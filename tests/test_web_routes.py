@@ -1,18 +1,21 @@
 from pathlib import Path
+import os
 import sys
 
-from flask import Flask
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
-from routes.web import web_bp
+from app import create_app
 
 
 def create_test_app():
-    template_dir = Path(__file__).resolve().parents[1] / "templates"
-    app = Flask(__name__, template_folder=str(template_dir))
-    app.register_blueprint(web_bp)
-    return app
+    return create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "SECRET_KEY": "test-secret",
+        }
+    )
 
 
 def test_index_route_renders_html():
