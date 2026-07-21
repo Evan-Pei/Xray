@@ -3,5 +3,9 @@ Flask-SQLAlchemy==3.0.5
 Flask-Login==0.6.2
 python-dotenv==1.0.0
 Werkzeug==2.3.6
+<<<<<<< HEAD
 gunicorn==22.0.0
 psycopg2-binary==2.9.9
+=======
+gunicorn==21.2.0
+>>>>>>> 6102628c0a37c05043ac46ca1dd4b8db5ccd6a58
