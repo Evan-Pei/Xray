@@ -2,6 +2,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from flask_login import current_user, login_required
 
 from models import (
+    MACHINE_STATUS_MAINTENANCE,
     MACHINE_STATUS_OFFLINE,
     MACHINE_STATUS_ONLINE,
     MACHINE_VALID_STATUSES,
@@ -10,6 +11,8 @@ from models import (
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+
 @admin_bp.route("/", methods=["GET"])
 @login_required
 def index():
@@ -22,7 +25,7 @@ def machine_list():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
-        requested_status = request.form.get("status")
+        requested_status = request.form.get("status", "").strip()
         status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
 
         if name and description and status:
@@ -53,8 +56,9 @@ def edit_machine(machine_id: int):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
-        requested_status = request.form.get("status")
+        requested_status = request.form.get("status", "").strip()
         status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
+
         if name and description and status:
             machine.name = name
             machine.description = description
@@ -62,10 +66,13 @@ def edit_machine(machine_id: int):
             db.session.commit()
             flash("Machine updated successfully.")
             return redirect(url_for("admin.machine_list"))
+
         flash("Please provide valid name, description, and status.", "error")
 
     return render_template(
-        "admin/edit_machine.html", machine=machine, statuses=sorted(MACHINE_VALID_STATUSES)
+        "admin/edit_machine.html",
+        machine=machine,
+        statuses=sorted(MACHINE_VALID_STATUSES),
     )
 
 
@@ -89,9 +96,15 @@ def toggle_machine_status(machine_id: int):
     if machine is None:
         abort(404)
 
-    machine.status = (
-        MACHINE_STATUS_OFFLINE if machine.status == MACHINE_STATUS_ONLINE else MACHINE_STATUS_ONLINE
-    )
+    if machine.status == MACHINE_STATUS_ONLINE:
+        machine.status = MACHINE_STATUS_OFFLINE
+    elif machine.status == MACHINE_STATUS_OFFLINE:
+        machine.status = MACHINE_STATUS_ONLINE
+    elif machine.status == MACHINE_STATUS_MAINTENANCE:
+        machine.status = MACHINE_STATUS_ONLINE
+    else:
+        machine.status = MACHINE_STATUS_ONLINE
+
     db.session.commit()
     flash("Machine status updated.")
     return redirect(url_for("admin.machine_list"))

@@ -5,9 +5,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+
 MACHINE_STATUS_ONLINE = "online"
 MACHINE_STATUS_OFFLINE = "offline"
-MACHINE_VALID_STATUSES = {MACHINE_STATUS_ONLINE, MACHINE_STATUS_OFFLINE}
+MACHINE_STATUS_MAINTENANCE = "maintenance"
+
+MACHINE_VALID_STATUSES = {
+    MACHINE_STATUS_ONLINE,
+    MACHINE_STATUS_OFFLINE,
+    MACHINE_STATUS_MAINTENANCE,
+}
 
 
 class User(UserMixin, db.Model):
@@ -35,7 +42,8 @@ class Booking(db.Model):
     year = db.Column(db.Integer, nullable=False)
     month = db.Column(db.Integer, nullable=False)
     day = db.Column(db.Integer, nullable=False)
-    time = db.Column(db.String(5), nullable=False)
+    start_time = db.Column(db.String(5), nullable=False)
+    end_time = db.Column(db.String(5), nullable=False)
     machine = db.Column(db.String(120), nullable=False)
     patient = db.Column(db.String(120), nullable=False)
 
