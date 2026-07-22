@@ -74,6 +74,7 @@ def test_machine_crud_and_status_toggle(client, app):
         machine = Machine.query.filter_by(name="Portable X-Ray").first()
         assert machine is not None
         machine_id = machine.id
+        new_machine_id = max(existing_machine.id for existing_machine in Machine.query.all()) + 1
 
     toggle_response = client.post(f"/admin/machines/{machine_id}/toggle-status", follow_redirects=True)
     assert toggle_response.status_code == 200
@@ -86,7 +87,7 @@ def test_machine_crud_and_status_toggle(client, app):
     edit_response = client.post(
         f"/admin/machines/{machine_id}/edit",
         data={
-            "id": str(machine_id + 10),
+            "id": str(new_machine_id),
             "name": "Portable X-Ray v2",
             "description": "Updated",
             "status": "online",
@@ -99,10 +100,10 @@ def test_machine_crud_and_status_toggle(client, app):
     with app.app_context():
         updated_machine = Machine.query.filter_by(name="Portable X-Ray v2").first()
         assert updated_machine is not None
-        assert updated_machine.id == machine_id + 10
+        assert updated_machine.id == new_machine_id
         assert db.session.get(Machine, machine_id) is None
 
-    delete_response = client.post(f"/admin/machines/{machine_id + 10}/delete", follow_redirects=True)
+    delete_response = client.post(f"/admin/machines/{new_machine_id}/delete", follow_redirects=True)
     assert delete_response.status_code == 200
     assert b"Portable X-Ray v2" not in delete_response.data
 
