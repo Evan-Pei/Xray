@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from models import (
     MACHINE_STATUS_MAINTENANCE,
@@ -54,20 +55,43 @@ def edit_machine(machine_id: int):
         abort(404)
 
     if request.method == "POST":
+        requested_id = request.form.get("id", "").strip()
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
         requested_status = request.form.get("status", "").strip()
         status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
 
-        if name and description and status:
+        try:
+            new_machine_id = int(requested_id)
+        except ValueError:
+            new_machine_id = None
+
+        if new_machine_id is not None and new_machine_id <= 0:
+            new_machine_id = None
+
+        if not (name and description and status):
+            flash("Please provide valid name, description, and status.", "error")
+        elif new_machine_id is None:
+            flash("Please provide a valid machine ID.", "error")
+        else:
+            machine.id = new_machine_id
             machine.name = name
             machine.description = description
             machine.status = status
-            db.session.commit()
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                db.session.refresh(machine)
+                flash("Machine ID is already in use.", "error")
+                return render_template(
+                    "admin/edit_machine.html",
+                    machine=machine,
+                    statuses=sorted(MACHINE_VALID_STATUSES),
+                )
+
             flash("Machine updated successfully.")
             return redirect(url_for("admin.machine_list"))
-
-        flash("Please provide valid name, description, and status.", "error")
 
     return render_template(
         "admin/edit_machine.html",
