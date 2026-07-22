@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from models import (
     MACHINE_STATUS_MAINTENANCE,
@@ -54,20 +55,48 @@ def edit_machine(machine_id: int):
         abort(404)
 
     if request.method == "POST":
+        requested_id = request.form.get("id", "").strip()
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
         requested_status = request.form.get("status", "").strip()
         status = requested_status if requested_status in MACHINE_VALID_STATUSES else None
 
-        if name and description and status:
+        try:
+            new_machine_id = int(requested_id)
+        except ValueError:
+            new_machine_id = None
+
+        if new_machine_id is not None and new_machine_id <= 0:
+            new_machine_id = None
+
+        if new_machine_id and name and description and status:
+            if new_machine_id != machine.id and db.session.get(Machine, new_machine_id) is not None:
+                flash("Machine ID is already in use.", "error")
+                return render_template(
+                    "admin/edit_machine.html",
+                    machine=machine,
+                    statuses=sorted(MACHINE_VALID_STATUSES),
+                )
+
             machine.name = name
             machine.description = description
             machine.status = status
-            db.session.commit()
+            machine.id = new_machine_id
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                flash("Machine ID is already in use.", "error")
+                return render_template(
+                    "admin/edit_machine.html",
+                    machine=machine,
+                    statuses=sorted(MACHINE_VALID_STATUSES),
+                )
+
             flash("Machine updated successfully.")
             return redirect(url_for("admin.machine_list"))
 
-        flash("Please provide valid name, description, and status.", "error")
+        flash("Please provide valid machine ID, name, description, and status.", "error")
 
     return render_template(
         "admin/edit_machine.html",

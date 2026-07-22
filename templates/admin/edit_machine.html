@@ -164,6 +164,9 @@
             {% endfor %}
 
             <form method="post">
+                <label for="id">ID</label>
+                <input id="id" name="id" type="number" min="1" value="{{ machine.id }}" required>
+
                 <label for="name">Name</label>
                 <input id="name" name="name" value="{{ machine.name }}" required>
 
