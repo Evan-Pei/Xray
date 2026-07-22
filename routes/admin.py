@@ -90,6 +90,7 @@ def edit_machine(machine_id: int):
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
+                db.session.refresh(machine)
                 flash("Machine ID is already in use.", "error")
                 return render_template(
                     "admin/edit_machine.html",
