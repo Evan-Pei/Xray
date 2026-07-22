@@ -74,7 +74,9 @@ def test_machine_crud_and_status_toggle(client, app):
         machine = Machine.query.filter_by(name="Portable X-Ray").first()
         assert machine is not None
         machine_id = machine.id
-        new_machine_id = max(existing_machine.id for existing_machine in Machine.query.all()) + 1
+        new_machine_id = 9999
+        while db.session.get(Machine, new_machine_id) is not None:
+            new_machine_id += 1
 
     toggle_response = client.post(f"/admin/machines/{machine_id}/toggle-status", follow_redirects=True)
     assert toggle_response.status_code == 200

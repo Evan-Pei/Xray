@@ -82,10 +82,10 @@ def edit_machine(machine_id: int):
                     statuses=sorted(MACHINE_VALID_STATUSES),
                 )
 
+            machine.id = new_machine_id
             machine.name = name
             machine.description = description
             machine.status = status
-            machine.id = new_machine_id
             try:
                 db.session.commit()
             except IntegrityError:
