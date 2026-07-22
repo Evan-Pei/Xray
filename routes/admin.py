@@ -69,7 +69,11 @@ def edit_machine(machine_id: int):
         if new_machine_id is not None and new_machine_id <= 0:
             new_machine_id = None
 
-        if new_machine_id and name and description and status:
+        if not (name and description and status):
+            flash("Please provide valid name, description, and status.", "error")
+        elif new_machine_id is None:
+            flash("Please provide a valid machine ID.", "error")
+        else:
             if new_machine_id != machine.id and db.session.get(Machine, new_machine_id) is not None:
                 flash("Machine ID is already in use.", "error")
                 return render_template(
@@ -95,8 +99,6 @@ def edit_machine(machine_id: int):
 
             flash("Machine updated successfully.")
             return redirect(url_for("admin.machine_list"))
-
-        flash("Please provide valid machine ID, name, description, and status.", "error")
 
     return render_template(
         "admin/edit_machine.html",

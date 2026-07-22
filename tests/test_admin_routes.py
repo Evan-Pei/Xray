@@ -112,6 +112,7 @@ def test_machine_edit_id_conflict_shows_error(client, app):
 
     with app.app_context():
         machines = Machine.query.order_by(Machine.id.asc()).all()
+        assert len(machines) >= 2
         target_machine = machines[0]
         conflicting_machine = machines[1]
         original_id = target_machine.id
