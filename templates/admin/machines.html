@@ -5,28 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Xray | Admin Machine Management</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
-        .container { max-width: 1050px; margin: 40px auto; padding: 24px; }
-        .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-        h1 { margin: 0; }
-        .sub { color: #64748b; margin-top: 4px; }
-        .logout { color: #2563eb; text-decoration: none; font-weight: 600; }
-        .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-top: 20px; }
-        .form-grid { display: grid; gap: 10px; grid-template-columns: 1fr 2fr auto auto; align-items: end; }
-        input, select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; }
-        button { padding: 8px 12px; border: none; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 10px 8px; text-align: left; vertical-align: top; }
-        .status { font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; display: inline-block; }
-        .status.online { background: #dcfce7; color: #15803d; }
-        .status.offline { background: #fee2e2; color: #b91c1c; }
-        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .actions form { margin: 0; }
-        .btn-muted { background: #475569; }
-        .btn-danger { background: #b91c1c; }
-        .flash { margin-top: 16px; padding: 10px 12px; border-radius: 6px; font-size: 14px; }
-        .flash.error { background: #fee2e2; color: #991b1b; }
-        .flash:not(.error) { background: #dcfce7; color: #166534; }
+        :root {
+            --navy: #0f172a;
+            --blue: #2563eb;
+            --slate: #475569;
+            --red: #b91c1c;
+            --green-bg: #dcfce7;
+            --green-text: #166534;
+            --yellow-bg: #fef3c7;
+            --yellow-text: #92400e;
+            --red-bg: #fee2e2;
+            --red-text: #991b1b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px 30px;
+        }
+
+        .header {
+            background: var(--navy);
+            color: white;
+            border-radius: 18px;
+            padding: 26px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .sub {
+            margin-top: 8px;
+            color: rgba(255,255,255,0.72);
+            font-size: 15px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .nav a,
+        .logout {
+            color: #93c5fd;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .panel {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 22px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 24px;
+            color: #0b2450;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 2fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        input,
+        select {
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: none;
+            background: var(--blue);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-muted {
+            background: var(--slate);
+        }
+
+        .btn-danger {
+            background: var(--red);
+        }
+
+        .flash {
+            margin-top: 16px;
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .flash.error {
+            background: var(--red-bg);
+            color: var(--red-text);
+        }
+
+        .flash:not(.error) {
+            background: var(--green-bg);
+            color: var(--green-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid var(--border);
+            padding: 12px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 15px;
+        }
+
+        .status {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            display: inline-block;
+            letter-spacing: 0.03em;
+        }
+
+        .status.online {
+            background: var(--green-bg);
+            color: var(--green-text);
+        }
+
+        .status.offline {
+            background: var(--red-bg);
+            color: #b91c1c;
+        }
+
+        .status.maintenance {
+            background: var(--yellow-bg);
+            color: var(--yellow-text);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .actions form {
+            margin: 0;
+        }
+
+        .actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 12px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .actions button {
+            width: auto;
+            min-width: 110px;
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 10px 0 4px;
+        }
+
+        @media (max-width: 900px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            th:nth-child(3),
+            td:nth-child(3) {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -36,7 +260,11 @@
                 <h1>Machine Management</h1>
                 <p class="sub">Signed in as {{ current_user.username }}</p>
             </div>
-            <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
+            <div class="nav">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/calendar">Calendar</a>
+                <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
+            </div>
         </section>
 
         {% for category, message in get_flashed_messages(with_categories=true) %}
@@ -50,24 +278,31 @@
                     <label for="name">Name</label>
                     <input id="name" name="name" required>
                 </div>
+
                 <div>
                     <label for="description">Description</label>
                     <input id="description" name="description" required>
                 </div>
+
                 <div>
                     <label for="status">Status</label>
-                    <select id="status" name="status">
+                    <select id="status" name="status" required>
                         {% for status in statuses %}
                         <option value="{{ status }}">{{ status }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <button type="submit">Create</button>
+
+                <div>
+                    <button type="submit">Create</button>
+                </div>
             </form>
         </section>
 
         <section class="panel">
-            <h2>Records</h2>
+            <h2>Machine Records</h2>
+
+            {% if machines %}
             <table>
                 <thead>
                     <tr>
@@ -84,13 +319,17 @@
                         <td>{{ machine.id }}</td>
                         <td>{{ machine.name }}</td>
                         <td>{{ machine.description }}</td>
-                        <td><span class="status {{ machine.status }}">{{ machine.status }}</span></td>
+                        <td>
+                            <span class="status {{ machine.status }}">{{ machine.status }}</span>
+                        </td>
                         <td>
                             <div class="actions">
                                 <a href="{{ url_for('admin.edit_machine', machine_id=machine.id) }}">Edit</a>
+
                                 <form method="post" action="{{ url_for('admin.toggle_machine_status', machine_id=machine.id) }}">
                                     <button class="btn-muted" type="submit">Toggle Status</button>
                                 </form>
+
                                 <form method="post" action="{{ url_for('admin.delete_machine', machine_id=machine.id) }}" onsubmit="return confirm('Delete this machine?');">
                                     <button class="btn-danger" type="submit">Delete</button>
                                 </form>
@@ -100,6 +339,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p class="empty">No machines found.</p>
+            {% endif %}
         </section>
     </main>
 </body>
