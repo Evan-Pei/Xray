@@ -92,7 +92,7 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1.2fr 2fr 1fr auto;
+            grid-template-columns: 1.2fr 2fr auto;
             gap: 12px;
             align-items: end;
         }
@@ -177,31 +177,6 @@
             font-size: 15px;
         }
 
-        .status {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 999px;
-            display: inline-block;
-            letter-spacing: 0.03em;
-        }
-
-        .status.online {
-            background: var(--green-bg);
-            color: var(--green-text);
-        }
-
-        .status.offline {
-            background: var(--red-bg);
-            color: #b91c1c;
-        }
-
-        .status.maintenance {
-            background: var(--yellow-bg);
-            color: var(--yellow-text);
-        }
-
         .actions {
             display: flex;
             gap: 8px;
@@ -245,11 +220,6 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
-
-            th:nth-child(3),
-            td:nth-child(3) {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -285,15 +255,6 @@
                 </div>
 
                 <div>
-                    <label for="status">Status</label>
-                    <select id="status" name="status" required>
-                        {% for status in statuses %}
-                        <option value="{{ status }}">{{ status }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
                     <button type="submit">Create</button>
                 </div>
             </form>
@@ -309,7 +270,6 @@
                         <th>ID</th>
                         <th>Name</th>
                         <th>Description</th>
-                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -320,15 +280,8 @@
                         <td>{{ machine.name }}</td>
                         <td>{{ machine.description }}</td>
                         <td>
-                            <span class="status {{ machine.status }}">{{ machine.status }}</span>
-                        </td>
-                        <td>
                             <div class="actions">
                                 <a href="{{ url_for('admin.edit_machine', machine_id=machine.id) }}">Edit</a>
-
-                                <form method="post" action="{{ url_for('admin.toggle_machine_status', machine_id=machine.id) }}">
-                                    <button class="btn-muted" type="submit">Toggle Status</button>
-                                </form>
 
                                 <form method="post" action="{{ url_for('admin.delete_machine', machine_id=machine.id) }}" onsubmit="return confirm('Delete this machine?');">
                                     <button class="btn-danger" type="submit">Delete</button>
