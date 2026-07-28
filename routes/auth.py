@@ -17,7 +17,7 @@ def login():
         password = request.form.get('password', '')
 
         user = User.query.filter_by(username=username).first()
-        if user and user.is_admin and user.check_password(password):
+        if user and getattr(user, "is_admin", True) and user.check_password(password):
             login_user(user)
             return redirect(url_for('admin.machine_list'))
         error = 'Invalid username or password'
