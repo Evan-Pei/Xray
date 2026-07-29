@@ -784,12 +784,18 @@ async function loadMachines() {
     sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
 }
 
+function getDefaultQualifiedUser() {
+    if (!qualifiedUsers.length) return null;
+    return qualifiedUsers.find(u => u.id === CURRENT_USER_ID) || qualifiedUsers[0];
+}
+
 function renderUserOptions() {
     const sel = document.getElementById("fUser");
     sel.innerHTML = qualifiedUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
-    if (!qualifiedUsers.length) return;
-    const currentOpt = qualifiedUsers.find(u => u.id === CURRENT_USER_ID);
-    sel.value = String(currentOpt ? currentOpt.id : qualifiedUsers[0].id);
+    const selectedUser = getDefaultQualifiedUser();
+    if (selectedUser) {
+        sel.value = String(selectedUser.id);
+    }
 }
 
 async function loadQualifiedUsers() {
@@ -990,8 +996,8 @@ function openNewBooking(y, m, day, evt) {
     document.getElementById("fEndDate").value   = dateStr;
     document.getElementById("fStartTime").value = "09:00";
     document.getElementById("fEndTime").value   = "10:00";
-    if (qualifiedUsers.length) {
-        const selectedUser = qualifiedUsers.find(u => u.id === CURRENT_USER_ID) || qualifiedUsers[0];
+    const selectedUser = getDefaultQualifiedUser();
+    if (selectedUser) {
         document.getElementById("fUser").value = String(selectedUser.id);
     }
     document.getElementById("fPurpose").value = "";

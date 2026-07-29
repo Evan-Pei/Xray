@@ -92,8 +92,12 @@ def create_booking():
     data = request.get_json(silent=True) or {}
 
     try:
-        machine_id = int(data.get("machine_id"))
         user_id = int(data.get("user_id", current_user.id))
+    except (TypeError, ValueError):
+        return jsonify({"error": "invalid user_id"}), 400
+
+    try:
+        machine_id = int(data.get("machine_id"))
         start_time = _parse_datetime(data.get("start"), "start")
         end_time = _parse_datetime(data.get("end"), "end")
     except (TypeError, ValueError):
