@@ -18,19 +18,23 @@ def index():
 def machine_list():
     """List all machines and handle creation"""
     if request.method == "POST":
+        machine_id = request.form.get("id", "").strip()
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
 
-        if name:
+        if not machine_id or not name:
+            flash("Please provide both ID and name.", "error")
+        else:
             try:
-                db.session.add(Machine(name=name, description=description))
+                machine_id_int = int(machine_id)
+                db.session.add(Machine(id=machine_id_int, name=name, description=description))
                 db.session.commit()
                 flash("Machine created successfully.")
+            except ValueError:
+                flash("ID must be a number.", "error")
             except IntegrityError:
                 db.session.rollback()
-                flash("A machine with this name already exists.", "error")
-        else:
-            flash("Please provide a machine name.", "error")
+                flash("A machine with this ID or name already exists.", "error")
 
         return redirect(url_for("admin.machine_list"))
 
@@ -51,22 +55,46 @@ def edit_machine(machine_id: int):
         abort(404)
 
     if request.method == "POST":
+        new_id = request.form.get("id", "").strip()
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
         status = request.form.get("status", "").strip()
 
-        if not name:
-            flash("Please provide a machine name.", "error")
+        if not new_id or not name:
+            flash("Please provide both ID and name.", "error")
         elif status not in MACHINE_VALID_STATUSES:
             flash("Invalid status selected.", "error")
         else:
-            machine.name = name
-            machine.description = description
-            machine.status = status
             try:
+                new_id_int = int(new_id)
+                
+                # If ID changed, delete old and create new
+                if new_id_int != machine_id:
+                    # Check if new ID already exists
+                    if db.session.get(Machine, new_id_int):
+                        flash("A machine with this ID already exists.", "error")
+                        return render_template(
+                            "admin/edit_machine.html",
+                            machine=machine,
+                            statuses=sorted(MACHINE_VALID_STATUSES),
+                        )
+                    
+                    # Delete old and create new
+                    db.session.delete(machine)
+                    db.session.flush()
+                    new_machine = Machine(id=new_id_int, name=name, description=description, status=status)
+                    db.session.add(new_machine)
+                else:
+                    # Just update existing
+                    machine.name = name
+                    machine.description = description
+                    machine.status = status
+                
                 db.session.commit()
                 flash("Machine updated successfully.")
                 return redirect(url_for("admin.machine_list"))
+            except ValueError:
+                flash("ID must be a number.", "error")
             except IntegrityError:
                 db.session.rollback()
                 flash("A machine with this name already exists.", "error")
