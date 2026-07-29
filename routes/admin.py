@@ -2,7 +2,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
-from models import Machine, db
+from models import Machine, MACHINE_STATUS_ONLINE, MACHINE_STATUS_OFFLINE, MACHINE_STATUS_MAINTENANCE, MACHINE_VALID_STATUSES, db
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -53,12 +53,16 @@ def edit_machine(machine_id: int):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
+        status = request.form.get("status", "").strip()
 
         if not name:
             flash("Please provide a machine name.", "error")
+        elif status not in MACHINE_VALID_STATUSES:
+            flash("Invalid status selected.", "error")
         else:
             machine.name = name
             machine.description = description
+            machine.status = status
             try:
                 db.session.commit()
                 flash("Machine updated successfully.")
@@ -67,7 +71,11 @@ def edit_machine(machine_id: int):
                 db.session.rollback()
                 flash("A machine with this name already exists.", "error")
 
-    return render_template("admin/edit_machine.html", machine=machine)
+    return render_template(
+        "admin/edit_machine.html",
+        machine=machine,
+        statuses=sorted(MACHINE_VALID_STATUSES),
+    )
 
 
 @admin_bp.route("/machines/<int:machine_id>/delete", methods=["POST"])
