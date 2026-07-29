@@ -665,7 +665,7 @@ const TODAY_YEAR  = {{ today_year }};
 const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
 const CURRENT_USER = {{ current_username | tojson }};
-const CURRENT_USER_ID = {{ current_user_id }};
+const CURRENT_USER_ID = {{ current_user_id | tojson }};
 const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
 
 let curYear  = {{ init_year }};
@@ -1108,8 +1108,8 @@ async function submitBooking() {
     const startTime = document.getElementById("fStartTime").value;
     const endDate   = document.getElementById("fEndDate").value;
     const endTime   = document.getElementById("fEndTime").value;
-    const userId    = parseInt(document.getElementById("fUser").value);
-    const machineId = parseInt(document.getElementById("fMachine").value);
+    const userId    = parseInt(document.getElementById("fUser").value, 10);
+    const machineId = parseInt(document.getElementById("fMachine").value, 10);
     const purpose   = document.getElementById("fPurpose").value.trim();
     const notes     = document.getElementById("fNotes").value.trim();
     const status    = document.getElementById("fStatus").value;
@@ -1117,9 +1117,9 @@ async function submitBooking() {
     if (!startDate || !startTime || !endDate || !endTime) {
         showToast("請填寫日期和時間", "error"); return;
     }
-    if (!userId) { showToast("請選擇使用者", "error"); return; }
+    if (Number.isNaN(userId) || userId <= 0) { showToast("請選擇使用者", "error"); return; }
     if (!purpose) { showToast("請填寫使用目的", "error"); return; }
-    if (!machineId) { showToast("請選擇機台", "error"); return; }
+    if (Number.isNaN(machineId) || machineId <= 0) { showToast("請選擇機台", "error"); return; }
 
     const start = `${startDate}T${startTime}:00`;
     const end   = `${endDate}T${endTime}:00`;

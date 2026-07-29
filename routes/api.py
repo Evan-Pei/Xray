@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-import os
 
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
@@ -42,10 +41,6 @@ def _booking_conflict(machine_id, start_time, end_time, booking_id=None):
 
 def _record_history(booking, action):
     db.session.add(BookingHistory(booking=booking, action=action, snapshot=booking.snapshot()))
-
-
-def _is_admin_user(user):
-    return user.username == os.environ.get("ADMIN_USERNAME", "admin")
 
 
 @api_bp.get("/health")
@@ -123,7 +118,7 @@ def create_booking():
         return jsonify({"error": "user not found"}), 400
     if not booking_user.is_qualified:
         return jsonify({"error": "selected user is not qualified"}), 403
-    if booking_user.id != current_user.id and not _is_admin_user(current_user):
+    if booking_user.id != current_user.id and not current_user.is_admin():
         return jsonify({"error": "admin required to book for other users"}), 403
 
     if _booking_conflict(machine_id, start_time, end_time):

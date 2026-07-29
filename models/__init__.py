@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import os
 
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -26,6 +27,9 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def is_admin(self):
+        return self.username == os.environ.get("ADMIN_USERNAME", "admin")
 
 
 class Machine(db.Model):
