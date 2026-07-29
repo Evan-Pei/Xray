@@ -1,7 +1,6 @@
-import calendar
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, render_template, request
 from flask_login import current_user, login_required
 
 from models import Booking, Machine, db
@@ -49,71 +48,24 @@ def dashboard():
 @login_required
 def calendar_view():
     """Calendar view showing all bookings"""
+    today = datetime.now().date()
     try:
-        # Get current month info
-        today = datetime.now().date()
-        month_name = today.strftime("%B %Y")
-        year = today.year
-        month = today.month
-        
-        # Get calendar grid for current month
-        cal_obj = calendar.monthcalendar(year, month)
-        
-        # Get all non-deleted bookings
-        bookings = (
-            Booking.query
-            .filter_by(is_deleted=False)
-            .order_by(Booking.start_time.asc())
-            .all()
-        )
-        
-        # Group bookings by day for display
-        bookings_by_day = {}
-        for booking in bookings:
-            day = booking.start_time.day
-            if day not in bookings_by_day:
-                bookings_by_day[day] = []
-            bookings_by_day[day].append(booking)
-        
-        # Get machines for dropdown
-        machines = Machine.query.order_by(Machine.name.asc()).all()
-        machine_names = [m.name for m in machines]
-        
-        # Generate time options (hourly slots)
-        time_options = [f"{h:02d}:00" for h in range(7, 23)]
-        
-        # Get number of days in month
-        month_days = calendar.monthrange(year, month)[1]
-        
-        # Today's day number
-        today_day = today.day
-        
-        return render_template(
-            "calendar.html",
-            cal=cal_obj,
-            month_name=month_name,
-            bookings=bookings,
-            bookings_by_day=bookings_by_day,
-            machines=machines,
-            machine_names=machine_names,
-            time_options=time_options,
-            month_days=month_days,
-            today_day=today_day,
-        )
-    except Exception as e:
-        flash(f"Error loading calendar: {str(e)}", "error")
-        return render_template(
-            "calendar.html",
-            cal=[],
-            month_name="",
-            bookings=[],
-            bookings_by_day={},
-            machines=[],
-            machine_names=[],
-            time_options=[],
-            month_days=0,
-            today_day=0,
-        )
+        year = int(request.args.get("year", today.year))
+        month = int(request.args.get("month", today.month))
+        if not (1 <= month <= 12):
+            raise ValueError("invalid month")
+    except (ValueError, TypeError):
+        year, month = today.year, today.month
+
+    return render_template(
+        "calendar.html",
+        init_year=year,
+        init_month=month,
+        today_year=today.year,
+        today_month=today.month,
+        today_day=today.day,
+        current_username=current_user.username,
+    )
 
 
 @web_bp.route("/bookings", methods=["GET"])
