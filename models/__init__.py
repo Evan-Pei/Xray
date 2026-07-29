@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_qualified = db.Column(db.Boolean, nullable=False, default=False)
     bookings = db.relationship("Booking", back_populates="user", lazy=True)
 
     def set_password(self, password):
@@ -73,6 +74,7 @@ class Booking(db.Model):
     def to_dict(self, current_user_id=None):
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "title": self.title,
             "purpose": self.purpose,
             "applicant_name": self.applicant_name,

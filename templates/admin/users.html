@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Xray | Admin User Management</title>
+    <style>
+        :root {
+            --navy: #0f172a;
+            --blue: #2563eb;
+            --slate: #475569;
+            --red: #b91c1c;
+            --green-bg: #dcfce7;
+            --green-text: #166534;
+            --red-bg: #fee2e2;
+            --red-text: #991b1b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px 30px; }
+        .header { background: var(--navy); color: white; border-radius: 18px; padding: 26px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .header h1 { margin: 0; font-size: 30px; }
+        .sub { margin-top: 8px; color: rgba(255,255,255,0.72); font-size: 15px; }
+        .nav { display: flex; gap: 16px; flex-wrap: wrap; }
+        .nav a, .logout { color: #93c5fd; text-decoration: none; font-weight: 700; font-size: 15px; }
+        .panel { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-top: 22px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04); }
+        .panel h2 { margin: 0 0 18px; font-size: 24px; color: #0b2450; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; }
+        input, button { width: 100%; box-sizing: border-box; border-radius: 8px; font-size: 15px; }
+        input { padding: 10px 12px; border: 1px solid #cbd5e1; background: #fff; }
+        button { padding: 10px 14px; border: none; background: var(--blue); color: #fff; cursor: pointer; font-weight: 700; }
+        .btn-muted { background: var(--slate); }
+        .btn-danger { background: var(--red); }
+        .form-grid { display: grid; grid-template-columns: 1.4fr 1.4fr auto auto; gap: 12px; align-items: end; }
+        .checkbox-wrap { display: flex; align-items: center; gap: 8px; height: 40px; }
+        .checkbox-wrap input { width: auto; }
+        .flash { margin-top: 16px; padding: 11px 14px; border-radius: 8px; font-size: 14px; }
+        .flash.error { background: var(--red-bg); color: var(--red-text); }
+        .flash:not(.error) { background: var(--green-bg); color: var(--green-text); }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border-bottom: 1px solid var(--border); padding: 12px 8px; text-align: left; vertical-align: middle; }
+        th { color: #334155; font-size: 14px; }
+        td { font-size: 15px; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .actions form { margin: 0; }
+        .actions a { display: inline-flex; align-items: center; justify-content: center; padding: 9px 12px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; text-decoration: none; font-weight: 700; font-size: 14px; }
+        .actions button { width: auto; min-width: 90px; }
+        .empty { color: var(--muted); padding: 10px 0 4px; }
+        @media (max-width: 860px) { .form-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="header">
+            <div>
+                <h1>User Management</h1>
+                <p class="sub">Signed in as {{ current_user.username }}</p>
+            </div>
+            <div class="nav">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/calendar">Calendar</a>
+                <a href="{{ url_for('admin.machine_list') }}">機台</a>
+                <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
+            </div>
+        </section>
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+
+        <section class="panel">
+            <h2>Create New User</h2>
+            <form method="post" action="{{ url_for('admin.user_list') }}" class="form-grid">
+                <div>
+                    <label for="username">Username</label>
+                    <input id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" required>
+                </div>
+                <div>
+                    <label for="is_qualified">Qualified</label>
+                    <div class="checkbox-wrap">
+                        <input id="is_qualified" name="is_qualified" type="checkbox">
+                        <span>Yes</span>
+                    </div>
+                </div>
+                <div>
+                    <button type="submit">Create</button>
+                </div>
+            </form>
+        </section>
+
+        {% if edit_user %}
+        <section class="panel">
+            <h2>Edit User #{{ edit_user.id }}</h2>
+            <form method="post" action="{{ url_for('admin.edit_user', user_id=edit_user.id) }}" class="form-grid">
+                <div>
+                    <label for="edit-username">Username</label>
+                    <input id="edit-username" name="username" value="{{ edit_user.username }}" required>
+                </div>
+                <div>
+                    <label for="edit-password">Password (optional)</label>
+                    <input id="edit-password" name="password" type="password" placeholder="Leave blank to keep current">
+                </div>
+                <div>
+                    <label for="edit-is_qualified">Qualified</label>
+                    <div class="checkbox-wrap">
+                        <input id="edit-is_qualified" name="is_qualified" type="checkbox" {% if edit_user.is_qualified %}checked{% endif %}>
+                        <span>Yes</span>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="submit">Save</button>
+                    <a href="{{ url_for('admin.user_list') }}">Cancel</a>
+                </div>
+            </form>
+        </section>
+        {% endif %}
+
+        <section class="panel">
+            <h2>User Records</h2>
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Qualified</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ "✓" if user.is_qualified else "✗" }}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}">Edit</a>
+                                <form method="post" action="{{ url_for('admin.toggle_user_qualified', user_id=user.id) }}">
+                                    <button class="btn-muted" type="submit">Toggle</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Delete this user?');">
+                                    <button class="btn-danger" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty">No users found.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

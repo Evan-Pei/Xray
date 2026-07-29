@@ -610,7 +610,7 @@
                 </div>
                 <div class="field">
                     <label>使用者</label>
-                    <div class="field-readonly" id="fUser"></div>
+                    <select id="fUser"></select>
                 </div>
                 <div class="field">
                     <label>使用機台 <span class="req">*</span></label>
@@ -665,10 +665,13 @@ const TODAY_YEAR  = {{ today_year }};
 const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
 const CURRENT_USER = {{ current_username | tojson }};
+const CURRENT_USER_ID = {{ current_user_id }};
+const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
 
 let curYear  = {{ init_year }};
 let curMonth = {{ init_month }};
 let machines  = [];
+let qualifiedUsers = [];
 let bookingsCache = {};   // key: "YYYY-M" → array of booking objects
 let editingId = null;     // booking id when editing
 let deleteTargetId = null;
@@ -779,6 +782,25 @@ async function loadMachines() {
     // populate dropdown
     const sel = document.getElementById("fMachine");
     sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+}
+
+function renderUserOptions() {
+    const sel = document.getElementById("fUser");
+    sel.innerHTML = qualifiedUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
+    if (!qualifiedUsers.length) return;
+    const currentOpt = qualifiedUsers.find(u => u.id === CURRENT_USER_ID);
+    sel.value = String(currentOpt ? currentOpt.id : qualifiedUsers[0].id);
+}
+
+async function loadQualifiedUsers() {
+    try {
+        qualifiedUsers = await apiFetch("/api/qualified-users");
+    } catch (e) {
+        qualifiedUsers = QUALIFIED_USERS_INITIAL;
+        showToast("載入合格使用者失敗，已使用頁面資料", "error");
+    } finally {
+        renderUserOptions();
+    }
 }
 
 async function loadBookings(y, m) {
@@ -968,7 +990,10 @@ function openNewBooking(y, m, day, evt) {
     document.getElementById("fEndDate").value   = dateStr;
     document.getElementById("fStartTime").value = "09:00";
     document.getElementById("fEndTime").value   = "10:00";
-    document.getElementById("fUser").textContent = CURRENT_USER;
+    if (qualifiedUsers.length) {
+        const selectedUser = qualifiedUsers.find(u => u.id === CURRENT_USER_ID) || qualifiedUsers[0];
+        document.getElementById("fUser").value = String(selectedUser.id);
+    }
     document.getElementById("fPurpose").value = "";
     document.getElementById("fNotes").value   = "";
     document.getElementById("fStatus").value  = "pending";
@@ -1034,7 +1059,9 @@ function switchToEdit() {
     document.getElementById("fEndDate").value   = isoToDateStr(booking.end);
     document.getElementById("fStartTime").value = isoToTimeStr(booking.start);
     document.getElementById("fEndTime").value   = isoToTimeStr(booking.end);
-    document.getElementById("fUser").textContent = booking.applicant_name;
+    if (booking.user_id) {
+        document.getElementById("fUser").value = String(booking.user_id);
+    }
     document.getElementById("fMachine").value   = booking.machine_id;
     document.getElementById("fPurpose").value   = booking.purpose;
     const title = (booking.title || "").trim();
@@ -1075,6 +1102,7 @@ async function submitBooking() {
     const startTime = document.getElementById("fStartTime").value;
     const endDate   = document.getElementById("fEndDate").value;
     const endTime   = document.getElementById("fEndTime").value;
+    const userId    = parseInt(document.getElementById("fUser").value);
     const machineId = parseInt(document.getElementById("fMachine").value);
     const purpose   = document.getElementById("fPurpose").value.trim();
     const notes     = document.getElementById("fNotes").value.trim();
@@ -1083,6 +1111,7 @@ async function submitBooking() {
     if (!startDate || !startTime || !endDate || !endTime) {
         showToast("請填寫日期和時間", "error"); return;
     }
+    if (!userId) { showToast("請選擇使用者", "error"); return; }
     if (!purpose) { showToast("請填寫使用目的", "error"); return; }
     if (!machineId) { showToast("請選擇機台", "error"); return; }
 
@@ -1095,6 +1124,7 @@ async function submitBooking() {
     const payload = {
         start,
         end,
+        user_id: userId,
         machine_id: machineId,
         purpose,
         title: notes || DEFAULT_TITLE,
@@ -1187,9 +1217,9 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", confirmDel
 (async () => {
     populateTimeSelects();
     try {
-        await loadMachines();
+        await Promise.all([loadMachines(), loadQualifiedUsers()]);
     } catch (e) {
-        showToast("載入機台失敗: " + e.message, "error");
+        showToast("載入資料失敗: " + e.message, "error");
     }
     await renderAll();
 })();

@@ -2,9 +2,21 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
-from models import Machine, MACHINE_STATUS_ONLINE, MACHINE_STATUS_OFFLINE, MACHINE_STATUS_MAINTENANCE, MACHINE_VALID_STATUSES, db
+from models import (
+    MACHINE_STATUS_MAINTENANCE,
+    MACHINE_STATUS_OFFLINE,
+    MACHINE_STATUS_ONLINE,
+    MACHINE_VALID_STATUSES,
+    Machine,
+    User,
+    db,
+)
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+
+def _is_checked(field_name):
+    return request.form.get(field_name) in {"on", "true", "1", "yes"}
 
 
 @admin_bp.route("/", methods=["GET"])
@@ -118,3 +130,88 @@ def delete_machine(machine_id: int):
     db.session.commit()
     flash("Machine deleted.")
     return redirect(url_for("admin.machine_list"))
+
+
+@admin_bp.route("/users", methods=["GET", "POST"])
+@login_required
+def user_list():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        is_qualified = _is_checked("is_qualified")
+
+        if not username or not password:
+            flash("Please provide both username and password.", "error")
+        else:
+            try:
+                user = User(username=username, is_qualified=is_qualified)
+                user.set_password(password)
+                db.session.add(user)
+                db.session.commit()
+                flash("User created successfully.")
+            except IntegrityError:
+                db.session.rollback()
+                flash("A user with this username already exists.", "error")
+        return redirect(url_for("admin.user_list"))
+
+    users = User.query.order_by(User.id.asc()).all()
+    return render_template("admin/users.html", users=users, edit_user=None)
+
+
+@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_user(user_id: int):
+    user = db.session.get(User, user_id)
+    if user is None:
+        abort(404)
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        is_qualified = _is_checked("is_qualified")
+
+        if not username:
+            flash("Username is required.", "error")
+        else:
+            try:
+                user.username = username
+                user.is_qualified = is_qualified
+                if password:
+                    user.set_password(password)
+                db.session.commit()
+                flash("User updated successfully.")
+                return redirect(url_for("admin.user_list"))
+            except IntegrityError:
+                db.session.rollback()
+                flash("A user with this username already exists.", "error")
+
+    users = User.query.order_by(User.id.asc()).all()
+    return render_template("admin/users.html", users=users, edit_user=user)
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id: int):
+    user = db.session.get(User, user_id)
+    if user is None:
+        abort(404)
+    if user.id == current_user.id:
+        flash("You cannot delete your own account.", "error")
+        return redirect(url_for("admin.user_list"))
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("User deleted.")
+    return redirect(url_for("admin.user_list"))
+
+
+@admin_bp.route("/users/<int:user_id>/toggle-qualified", methods=["POST"])
+@login_required
+def toggle_user_qualified(user_id: int):
+    user = db.session.get(User, user_id)
+    if user is None:
+        abort(404)
+    user.is_qualified = not user.is_qualified
+    db.session.commit()
+    flash("User qualification updated.")
+    return redirect(url_for("admin.user_list"))
