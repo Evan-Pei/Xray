@@ -31,6 +31,7 @@ class Machine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="online")
     bookings = db.relationship("Booking", back_populates="machine", lazy=True)
 
     def to_dict(self):
@@ -38,6 +39,7 @@ class Machine(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "status": self.status,
         }
 
 
