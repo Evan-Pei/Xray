@@ -373,16 +373,7 @@
 
                                 {% for booking in bookings_by_day.get(day, []) %}
                                 <div class="booking-chip">
-                                    <span class="booking-text">{{ booking.start_time }}-{{ booking.end_time }} {{ booking.patient }}</span>
-                                    <span class="booking-actions">
-                                        <form method="get" action="{{ url_for('web.calendar_view') }}" style="display:inline;">
-                                            <input type="hidden" name="edit_id" value="{{ booking.id }}">
-                                            <button type="submit" class="icon-btn" title="Edit">✎</button>
-                                        </form>
-                                        <form method="post" action="{{ url_for('web.delete_booking', booking_id=booking.id) }}" style="display:inline;">
-                                            <button type="submit" class="danger-btn" title="Delete">✕</button>
-                                        </form>
-                                    </span>
+                                    <span class="booking-text">{{ booking.start_time.strftime('%H:%M') }}-{{ booking.end_time.strftime('%H:%M') }} {{ booking.applicant_name }}</span>
                                 </div>
                                 {% endfor %}
                             {% endif %}
@@ -396,103 +387,13 @@
 
         <div class="hint">
             <span class="hint-box"></span>
-            <span>Scheduled booking – click a day to pre-fill the form below</span>
+            <span>Scheduled booking – calendar displays all bookings</span>
         </div>
 
         <section class="panel">
-            <h2>{% if edit_booking %}Edit Booking{% else %}Add New Booking{% endif %}</h2>
-
-            <form method="post" action="{% if edit_booking %}{{ url_for('web.edit_booking', booking_id=edit_booking.id) }}{% else %}{{ url_for('web.create_booking') }}{% endif %}">
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="day">Day</label>
-                        <input
-                            id="day"
-                            name="day"
-                            type="number"
-                            min="1"
-                            max="{{ month_days }}"
-                            placeholder="e.g. 21"
-                            value="{% if edit_booking %}{{ edit_booking.day }}{% elif selected_day %}{{ selected_day }}{% endif %}"
-                            required
-                        >
-                    </div>
-
-                    <div class="field">
-                        <label for="start_time">Start Time</label>
-                        <select id="start_time" name="start_time" required>
-                            <option value="">Select start time</option>
-                            {% for t in time_options %}
-                            <option value="{{ t }}" {% if edit_booking and edit_booking.start_time == t %}selected{% endif %}>{{ t }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label for="end_time">End Time</label>
-                        <select id="end_time" name="end_time" required>
-                            <option value="">Select end time</option>
-                            {% for t in time_options %}
-                            <option value="{{ t }}" {% if edit_booking and edit_booking.end_time == t %}selected{% endif %}>{{ t }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label for="machine">Machine</label>
-                        <select id="machine" name="machine" required>
-                            <option value="">Select machine</option>
-                            {% for machine_name in machine_names %}
-                            <option value="{{ machine_name }}" {% if edit_booking and edit_booking.machine == machine_name %}selected{% endif %}>{{ machine_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label for="patient">Patient</label>
-                        <input
-                            id="patient"
-                            name="patient"
-                            placeholder="Patient name"
-                            value="{% if edit_booking %}{{ edit_booking.patient }}{% endif %}"
-                            required
-                        >
-                    </div>
-
-                    <div class="actions-col">
-                        <button class="btn" type="submit">
-                            {% if edit_booking %}Save{% else %}Add{% endif %}
-                        </button>
-
-                        {% if edit_booking %}
-                        <a class="btn btn-muted" href="{{ url_for('web.calendar_view') }}">Cancel</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </form>
+            <h2>Booking Information</h2>
+            <p>To create, edit, or delete bookings, please use the <a href="/dashboard">Dashboard</a> or access the booking system through the web interface.</p>
         </section>
     </main>
-
-    <script>
-        const dayInput = document.getElementById("day");
-        const dayCells = document.querySelectorAll(".calendar-day");
-
-        dayCells.forEach((cell) => {
-            cell.addEventListener("click", (event) => {
-                if (event.target.closest("form, button, a")) {
-                    return;
-                }
-
-                const selectedDay = cell.dataset.day;
-                if (!selectedDay) {
-                    return;
-                }
-
-                dayInput.value = selectedDay;
-                dayInput.focus();
-                dayInput.scrollIntoView({ behavior: "smooth", block: "center" });
-            });
-        });
-    </script>
 </body>
 </html>
