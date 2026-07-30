@@ -48,432 +48,223 @@
         }
         .topnav-brand {
             font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -.3px;
-        }
-        .topnav-links { display: flex; gap: 24px; }
-        .topnav-links a {
-            color: #93c5fd;
-            text-decoration: none;
-            font-size: 15px;
             font-weight: 600;
         }
-        .topnav-links a:hover { color: #fff; }
+        .topnav-links {
+            display: flex;
+            gap: 24px;
+        }
+        .topnav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .topnav-links a:hover {
+            opacity: 0.7;
+        }
 
-        /* ── Page layout ── */
-        .page { max-width: 1600px; margin: 0 auto; padding: 20px 16px 40px; }
+        /* ── Page Layout ── */
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
 
-        /* ── Three-column calendar layout ── */
         .cal-layout {
             display: grid;
-            grid-template-columns: 200px 1fr 200px;
-            gap: 16px;
-            align-items: start;
+            grid-template-columns: 250px 1fr 250px;
+            gap: 24px;
         }
 
         /* ── Mini Calendar ── */
         .mini-cal {
             background: var(--white);
-            border-radius: var(--radius);
             border: 1px solid var(--border);
-            padding: 14px 12px;
+            border-radius: var(--radius);
+            padding: 16px;
             box-shadow: var(--shadow);
-            cursor: pointer;
-            transition: box-shadow .15s;
         }
-        .mini-cal:hover { box-shadow: var(--shadow-lg); }
         .mini-cal-header {
+            font-weight: 600;
             text-align: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 10px;
-            line-height: 1.3;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text);
         }
         .mini-cal table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
         }
         .mini-cal th {
-            color: var(--muted);
-            text-align: center;
-            padding: 2px 1px;
+            font-size: 12px;
             font-weight: 600;
+            color: var(--muted);
+            padding: 8px 0;
+            text-align: center;
         }
         .mini-cal td {
+            font-size: 12px;
+            padding: 6px;
             text-align: center;
-            padding: 3px 1px;
+            cursor: pointer;
             border-radius: 4px;
-            color: var(--text);
         }
-        .mini-cal td.empty { color: transparent; }
+        .mini-cal td.empty {
+            color: #ccc;
+            cursor: default;
+        }
         .mini-cal td.has-booking {
             background: var(--blue-light);
-            font-weight: 700;
             color: var(--blue);
+            font-weight: 600;
         }
 
         /* ── Main Calendar ── */
         .main-cal {
             background: var(--white);
-            border-radius: 18px;
             border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
             box-shadow: var(--shadow);
-            overflow: hidden;
         }
 
         .month-nav {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        .month-nav h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--navy);
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
         }
         .nav-btn {
-            border: 1px solid var(--border);
-            background: var(--white);
-            border-radius: 8px;
-            width: 36px; height: 36px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
-            transition: background .12s;
+            transition: background 0.2s;
         }
-        .nav-btn:hover { background: var(--bg2); }
-        .today-btn {
-            border: 1px solid var(--border);
-            background: var(--white);
-            border-radius: 8px;
-            padding: 0 14px;
-            height: 36px;
-            font-size: 13px;
+        .nav-btn:hover {
+            background: var(--blue-hover);
+        }
+        .month-title {
+            font-size: 20px;
             font-weight: 600;
-            cursor: pointer;
-            color: var(--blue);
-            transition: background .12s;
+            min-width: 200px;
+            text-align: center;
         }
-        .today-btn:hover { background: var(--blue-light); }
 
         .cal-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
-        .cal-table th {
-            background: var(--navy);
-            color: #fff;
-            padding: 10px 8px;
-            font-size: 13px;
-            font-weight: 700;
+        .cal-table thead th {
+            background: var(--bg2);
+            padding: 12px;
             text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
         }
         .cal-table td {
             border: 1px solid var(--border);
-            vertical-align: top;
+            padding: 12px;
             height: 120px;
-            padding: 8px 6px 6px;
+            vertical-align: top;
             background: var(--white);
-            transition: background .12s;
-        }
-        .cal-table td.empty { background: var(--bg); }
-        .cal-table td.cal-day { cursor: pointer; }
-        .cal-table td.cal-day:hover { background: #f0f7ff; }
-        .cal-table td.today-cell { background: #eff6ff; }
-
-        .day-num {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--navy);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px; height: 28px;
-            border-radius: 50%;
-            line-height: 1;
-        }
-        .day-num.today {
-            background: var(--blue);
-            color: var(--white);
-        }
-
-        .chip {
-            display: inline-block;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px 8px;
-            margin: 2px 0;
-            font-size: 11px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             cursor: pointer;
-            transition: all .12s;
+            transition: background 0.2s;
+            position: relative;
         }
-        .chip:hover { background: var(--bg2); box-shadow: var(--shadow); }
-        .chip.pending { border-left: 3px solid var(--pending-dot); }
-        .chip.approved { border-left: 3px solid var(--approved-dot); }
-        .chip.completed { border-left: 3px solid var(--completed-dot); }
-        .chip.cancelled { border-left: 3px solid var(--cancelled-dot); opacity: 0.6; }
+        .cal-table td:hover {
+            background: var(--bg2);
+        }
+        .cal-table td.empty {
+            background: #fafafa;
+            cursor: default;
+        }
+        .cal-table td.today {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .cal-date {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        /* ── Chips (Booking Items) ── */
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--pending-bg);
+            color: var(--pending-text);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            border-left: 3px solid var(--pending-dot);
+            transition: transform 0.1s;
+        }
+        .chip:hover {
+            transform: scale(1.02);
+        }
+        .chip.approved {
+            background: var(--approved-bg);
+            color: var(--approved-text);
+            border-left-color: var(--approved-dot);
+        }
+        .chip.completed {
+            background: var(--completed-bg);
+            color: var(--completed-text);
+            border-left-color: var(--completed-dot);
+        }
+        .chip.cancelled {
+            background: var(--cancelled-bg);
+            color: var(--cancelled-text);
+            border-left-color: var(--cancelled-dot);
+            text-decoration: line-through;
+        }
         .chip-dot {
             display: inline-block;
-            width: 6px; height: 6px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            margin-right: 4px;
+            background: currentColor;
+            flex-shrink: 0;
         }
-        .chip.pending .chip-dot { background: var(--pending-dot); }
-        .chip.approved .chip-dot { background: var(--approved-dot); }
-        .chip.completed .chip-dot { background: var(--completed-dot); }
-        .chip.cancelled .chip-dot { background: var(--cancelled-dot); }
         .chip-text {
-            font-weight: 500;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .more-chip {
             font-size: 11px;
             color: var(--muted);
-            margin-top: 2px;
-            font-weight: 600;
-        }
-
-        .legend {
-            display: flex;
-            gap: 16px;
-            padding: 12px 20px;
-            background: var(--bg2);
-            border-top: 1px solid var(--border);
-            font-size: 12px;
-            flex-wrap: wrap;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .legend-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        /* ── Modals ── */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,.3);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .overlay.open {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-lg);
-            width: 90%;
-            max-width: 500px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .modal-header h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--navy);
-            margin: 0;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--muted);
-            cursor: pointer;
-            padding: 0;
-            width: 28px; height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color .12s;
-        }
-        .modal-close:hover { color: var(--navy); }
-
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 8px;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border);
-            justify-content: flex-end;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .12s;
-            background: var(--white);
-            color: var(--text);
-        }
-        .btn:hover {
-            background: var(--bg2);
-        }
-        .btn-primary {
-            background: var(--blue);
-            color: var(--white);
-            border-color: var(--blue);
-        }
-        .btn-primary:hover {
-            background: var(--blue-hover);
-            border-color: var(--blue-hover);
-        }
-        .btn-danger {
-            background: #ef4444;
-            color: var(--white);
-            border-color: #ef4444;
-        }
-        .btn-danger:hover {
-            background: #dc2626;
-            border-color: #dc2626;
-        }
-
-        /* Detail rows (view mode) */
-        .detail-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .detail-label {
-            font-weight: 600;
-            color: var(--muted);
-            min-width: 80px;
-        }
-        .detail-val {
-            color: var(--text);
-            flex: 1;
-            word-break: break-word;
-        }
-
-        /* Form fields (edit/create mode) */
-        .field-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .field {
-            flex: 1;
-        }
-        .field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--navy);
-            margin-bottom: 4px;
-        }
-        .field input,
-        .field select,
-        .field textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-            color: var(--text);
-        }
-        .field input:focus,
-        .field select:focus,
-        .field textarea:focus {
-            outline: none;
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
-        }
-        .field textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .req {
-            color: #ef4444;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
             padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
+            cursor: pointer;
+        }
+        .more-chip:hover {
+            color: var(--blue);
         }
 
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            max-width: 300px;
-            padding: 12px 16px;
-            border-radius: 8px;
-            background: var(--white);
-            color: var(--text);
-            box-shadow: var(--shadow-lg);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all .3s;
-            pointer-events: none;
-            font-size: 13px;
-            z-index: 2000;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-        .toast.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #10b981;
-        }
-        .toast.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #ef4444;
-        }
-
-        /* Loading spinner */
+        /* ── Loading Overlay ── */
         .loading-overlay {
-            display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, .2);
-            z-index: 500;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
             align-items: center;
             justify-content: center;
+            z-index: 999;
         }
         .loading-overlay.show {
             display: flex;
@@ -481,13 +272,210 @@
         .spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid var(--border);
+            border: 4px solid #ddd;
             border-top-color: var(--blue);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: bottom 0.3s;
+            z-index: 1000;
+            max-width: 90%;
+        }
+        #toast.show {
+            bottom: 24px;
+        }
+        #toast.success {
+            background: #10b981;
+        }
+        #toast.error {
+            background: #ef4444;
+        }
+
+        /* ── Modal Overlays ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+        .overlay.open {
+            display: flex;
+        }
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--blue-hover);
+        }
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Forms ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* ── Detail View vs Edit Mode ── */
+        .detail-group {
+            margin-bottom: 16px;
+        }
+        .detail-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .detail-value {
+            font-size: 14px;
+            color: var(--text);
+            margin-top: 4px;
+        }
+
+        /* ── Confirmation Modal ── */
+        .confirm-message {
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 1024px) {
+            .cal-layout {
+                grid-template-columns: 1fr;
+            }
+            .mini-cal {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -520,32 +508,18 @@
         <div class="main-cal">
             <div class="month-nav">
                 <button class="nav-btn" id="btnPrev" title="上個月">&#8249;</button>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <h2 id="monthTitle">Loading…</h2>
-                    <button class="today-btn" id="btnToday">今天</button>
-                </div>
+                <div class="month-title" id="monthTitle">—</div>
                 <button class="nav-btn" id="btnNext" title="下個月">&#8250;</button>
+                <button class="nav-btn" id="btnToday" title="回到今天" style="margin-left: 16px;">Today</button>
             </div>
-            <table class="cal-table">
+            <table class="cal-table" id="calTable">
                 <thead>
                     <tr>
-                        <th>一<br><small>Mon</small></th>
-                        <th>二<br><small>Tue</small></th>
-                        <th>三<br><small>Wed</small></th>
-                        <th>四<br><small>Thu</small></th>
-                        <th>五<br><small>Fri</small></th>
-                        <th>六<br><small>Sat</small></th>
-                        <th>日<br><small>Sun</small></th>
+                        <th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th>
                     </tr>
                 </thead>
                 <tbody id="calBody"></tbody>
             </table>
-            <div class="legend">
-                <span class="legend-item"><span class="legend-dot" style="background:var(--pending-dot)"></span>待審 pending</span>
-                <span class="legend-item"><span class="legend-dot" style="background:var(--approved-dot)"></span>已批 approved</span>
-                <span class="legend-item"><span class="legend-dot" style="background:var(--completed-dot)"></span>完成 completed</span>
-                <span class="legend-item"><span class="legend-dot" style="background:var(--cancelled-dot)"></span>取消 cancelled</span>
-            </div>
         </div>
 
         <!-- Right: next month mini calendar -->
@@ -556,127 +530,121 @@
     </div>
 </div>
 
-<!-- ════════════════════════════ BOOKING MODAL ════════════════════════════ -->
+<!-- Booking Modal -->
 <div class="overlay" id="bookingOverlay">
-    <div class="modal" id="bookingModal">
+    <div class="modal">
         <div class="modal-header">
-            <h3 id="bookingModalTitle">新增預約</h3>
+            <div class="modal-title" id="bookingModalTitle">—</div>
             <button class="modal-close" onclick="closeBookingModal()">✕</button>
         </div>
-        <div class="modal-body" id="bookingModalBody">
-            <!-- View mode -->
-            <div id="viewMode" style="display:none">
-                <div class="detail-row">
-                    <span class="detail-label">狀態</span>
-                    <span class="detail-val"><span id="dStatus" class="status-badge"></span></span>
+        <div class="modal-body">
+            <!-- View Mode -->
+            <div id="viewMode" style="display: none;">
+                <div class="detail-group">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value" id="dStatus">—</div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">開始</span>
-                    <span class="detail-val" id="dStart"></span>
+                <div class="detail-group">
+                    <div class="detail-label">User</div>
+                    <div class="detail-value" id="dUser">—</div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">結束</span>
-                    <span class="detail-val" id="dEnd"></span>
+                <div class="detail-group">
+                    <div class="detail-label">Machine</div>
+                    <div class="detail-value" id="dMachine">—</div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">使用者</span>
-                    <span class="detail-val" id="dUser"></span>
+                <div class="detail-group">
+                    <div class="detail-label">Start</div>
+                    <div class="detail-value" id="dStart">—</div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">機台</span>
-                    <span class="detail-val" id="dMachine"></span>
+                <div class="detail-group">
+                    <div class="detail-label">End</div>
+                    <div class="detail-value" id="dEnd">—</div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">使用目的</span>
-                    <span class="detail-val" id="dPurpose"></span>
+                <div class="detail-group">
+                    <div class="detail-label">Purpose</div>
+                    <div class="detail-value" id="dPurpose">—</div>
                 </div>
-                <div class="detail-row" id="dNotesRow">
-                    <span class="detail-label">備註</span>
-                    <span class="detail-val" id="dNotes"></span>
+                <div class="detail-group" id="dNotesRow" style="display: none;">
+                    <div class="detail-label">Notes</div>
+                    <div class="detail-value" id="dNotes">—</div>
                 </div>
             </div>
-            <!-- Edit/Create mode -->
-            <div id="editMode" style="display:none">
-                <div class="field-row">
-                    <div class="field">
-                        <label>開始日期 <span class="req">*</span></label>
+
+            <!-- Edit Mode -->
+            <div id="editMode" style="display: none;">
+                <div class="form-group">
+                    <label>User</label>
+                    <select id="fUser"></select>
+                </div>
+                <div class="form-group">
+                    <label>Machine</label>
+                    <select id="fMachine"></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
                         <input type="date" id="fStartDate">
                     </div>
-                    <div class="field">
-                        <label>開始時間 <span class="req">*</span></label>
+                    <div class="form-group">
+                        <label>Start Time</label>
                         <select id="fStartTime"></select>
                     </div>
                 </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>結束日期 <span class="req">*</span></label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>End Date</label>
                         <input type="date" id="fEndDate">
                     </div>
-                    <div class="field">
-                        <label>結束時間 <span class="req">*</span></label>
+                    <div class="form-group">
+                        <label>End Time</label>
                         <select id="fEndTime"></select>
                     </div>
                 </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>使用者 <span class="req">*</span></label>
-                        <select id="fUser"></select>
-                    </div>
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <textarea id="fPurpose" placeholder="Enter the purpose of usage..."></textarea>
                 </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>機台 <span class="req">*</span></label>
-                        <select id="fMachine"></select>
-                    </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <input type="text" id="fNotes" placeholder="Additional notes...">
                 </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>使用目的 <span class="req">*</span></label>
-                        <input type="text" id="fPurpose" placeholder="e.g., 3D printing, testing">
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>備註</label>
-                        <textarea id="fNotes" placeholder="Optional notes"></textarea>
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label>狀態 <span class="req">*</span></label>
-                        <select id="fStatus">
-                            <option value="pending">待審</option>
-                            <option value="approved">已批</option>
-                            <option value="completed">完成</option>
-                            <option value="cancelled">取消</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="fStatus">
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
                 </div>
             </div>
         </div>
-        <div class="modal-footer" id="bookingModalFooter"></div>
+
+        <div class="modal-footer" id="bookingModalFooter">
+            <!-- Populated dynamically -->
+        </div>
     </div>
 </div>
 
-<!-- ════════════════════════════ CONFIRM DELETE ════════════════════════════ -->
+<!-- Delete Confirmation Modal -->
 <div class="overlay" id="confirmOverlay">
-    <div class="modal">
+    <div class="modal" style="max-width: 400px;">
         <div class="modal-header">
-            <h3>刪除預約</h3>
-            <button class="modal-close" onclick="closeConfirm()">✕</button>
+            <div class="modal-title">Delete Booking?</div>
         </div>
         <div class="modal-body">
-            <p>確定要刪除此預約嗎？</p>
+            <div class="confirm-message">
+                Are you sure you want to delete this booking? This action cannot be undone.
+            </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" onclick="closeConfirm()">取消</button>
-            <button class="btn btn-danger" id="confirmDeleteBtn">刪除</button>
+            <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
         </div>
     </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────
@@ -726,33 +694,35 @@ function buildTimeOptions() {
 }
 
 function populateTimeSelects() {
-    const opts = buildTimeOptions().map(t => `<option value="${t}">${t}</option>`).join("");
-    document.getElementById("fStartTime").innerHTML = opts;
-    document.getElementById("fEndTime").innerHTML = opts;
+    const opts = buildTimeOptions();
+    const optionsHtml = opts.map(t => `<option value="${t}">${t}</option>`).join("");
+    document.getElementById("fStartTime").innerHTML = optionsHtml;
+    document.getElementById("fEndTime").innerHTML = optionsHtml;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────────────
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function fmtDatetime(isoStr) {
-    const d = new Date(isoStr);
-    return d.toLocaleString("zh-TW");
+    if (!isoStr) return "—";
+    const d = new Date(isoStr + "Z");
+    return d.toLocaleString('zh-TW');
 }
 
 function isoToDateStr(isoStr) {
-    const d = new Date(isoStr);
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return isoStr.substring(0, 10);
 }
 
 function isoToTimeStr(isoStr) {
-    const d = new Date(isoStr);
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const dt = isoStr.substring(11, 16);
+    const [h, m] = dt.split(':');
+    const hm = Math.floor(Number(m) / 15);
+    return `${h}:${pad(hm * 15)}`;
 }
 
-// Round down to nearest 15 min in the time options list
-function timeToOption(h, m) {
-    m = Math.floor(m / 15) * 15;
-    return `${pad(h)}:${pad(m)}`;
+function toLocalInputValue(isoStr) {
+    const d = new Date(isoStr + "Z");
+    return d.toISOString().substring(0, 16);
 }
 
 function monthKey(y, m) { return `${y}-${m}`; }
@@ -775,18 +745,6 @@ function firstWeekday(y, m) {
     return (d + 6) % 7; // shift so Mon=0
 }
 
-function buildCalGrid(y, m) {
-    const days = daysInMonth(y, m);
-    const start = firstWeekday(y, m);
-    const cells = [];
-    for (let i = 0; i < start; i++) cells.push(0);
-    for (let d = 1; d <= days; d++) cells.push(d);
-    while (cells.length % 7 !== 0) cells.push(0);
-    const weeks = [];
-    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-    return weeks;
-}
-
 // ── API helpers ──────────────────────────────────────────────────────
 async function apiFetch(url, opts = {}) {
     const r = await fetch(url, {
@@ -799,13 +757,10 @@ async function apiFetch(url, opts = {}) {
 }
 
 async function loadMachines() {
-    try {
-        machines = await apiFetch("/api/machines");
-        const sel = document.getElementById("fMachine");
-        sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-    } catch (e) {
-        showToast("載入機台失敗: " + e.message, "error");
-    }
+    machines = await apiFetch("/api/machines");
+    const sel = document.getElementById("fMachine");
+    sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+    if (machines.length) sel.selectedIndex = 0;
 }
 
 function getDefaultQualifiedUser() {
@@ -827,19 +782,28 @@ async function loadQualifiedUsers() {
         qualifiedUsers = await apiFetch("/api/qualified-users");
     } catch (e) {
         qualifiedUsers = QUALIFIED_USERS_INITIAL;
-        showToast("載入合格使用者失敗，已使用頁面資料", "error");
-    } finally {
-        renderUserOptions();
+        showToast("載入合格使用者失敗", "error");
     }
+    renderUserOptions();
 }
 
+/**
+ * Load bookings for a given month, with buffer to include cross-month bookings.
+ * Extend the query range by 1 month before and after to catch bookings that span.
+ */
 async function loadBookings(y, m) {
     const key = monthKey(y, m);
     if (bookingsCache[key]) return bookingsCache[key];
-    // fetch entire month + a small buffer
-    const start = `${y}-${pad(m)}-01T00:00:00`;
-    const endDay = daysInMonth(y, m);
-    const end   = `${y}-${pad(m)}-${pad(endDay)}T23:59:59`;
+
+    // Extend range: load data from previous month to next month
+    // to ensure we capture all bookings that touch this calendar month
+    const [prevY, prevM] = addMonths(y, m, -1);
+    const [nextY, nextM] = addMonths(y, m, +1);
+
+    const start = `${prevY}-${pad(prevM)}-01T00:00:00`;
+    const endDay = daysInMonth(nextY, nextM);
+    const end = `${nextY}-${pad(nextM)}-${pad(endDay)}T23:59:59`;
+
     const data = await apiFetch(`/api/bookings?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
     bookingsCache[key] = data;
     return data;
@@ -849,7 +813,7 @@ function invalidateCache(y, m) {
     delete bookingsCache[monthKey(y, m)];
 }
 
-// ── Calendar rendering ────────────────────────────────────────────────────
+// ── Calendar rendering ────────────────────────────────────────────────
 function groupByDay(bookings, y, m) {
     const map = {};
     for (const b of bookings) {
@@ -911,25 +875,31 @@ async function renderMain(y, m) {
             const more = dayBookings.length > MAX
                 ? `<div class="more-chip">+${dayBookings.length - MAX} 更多…</div>`
                 : "";
-            return `<td class="cal-day${isToday ? " today-cell" : ""}" data-day="${day}" onclick="openNewBooking(${y},${m},${day},event)">
-                <span class="day-num${isToday ? " today" : ""}">${day}</span>
-                ${chips}${more}
+            return `<td class="${isToday ? 'today' : ''}" onclick="openNewBooking(${y}, ${m}, ${day}, event)">
+                <div class="cal-date">${day}</div>
+                ${chips}
+                ${more}
             </td>`;
         }).join("")}</tr>
     `).join("");
 
-    // Update title
-    document.getElementById("monthTitle").textContent = `${y} 年 ${MONTH_NAMES_ZH[m]}`;
+    document.getElementById("monthTitle").textContent = `${MONTH_NAMES_ZH[m]} ${y}`;
+}
 
-    // Update browser URL without reload
-    const url = new URL(window.location);
-    url.searchParams.set("year", y);
-    url.searchParams.set("month", m);
-    history.replaceState(null, "", url);
+function buildCalGrid(y, m) {
+    const days = daysInMonth(y, m);
+    const start = firstWeekday(y, m);
+    const cells = [];
+    for (let i = 0; i < start; i++) cells.push(0);
+    for (let d = 1; d <= days; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(0);
+    const weeks = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+    return weeks;
 }
 
 function renderMini(y, m, titleEl, tableEl, daysWithBookings) {
-    titleEl.textContent = `${y} 年 ${MONTH_NAMES_ZH[m]}`;
+    titleEl.textContent = `${MONTH_NAMES_ZH[m]} ${y}`;
     const weeks = buildCalGrid(y, m);
     tableEl.innerHTML = `
         <thead><tr>${["一","二","三","四","五","六","日"].map(d => `<th>${d}</th>`).join("")}</tr></thead>
@@ -973,7 +943,7 @@ async function renderAll() {
     }
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────
+// ── Navigation ────────────────────────────────────────────────────────
 function navigate(delta) {
     [curYear, curMonth] = addMonths(curYear, curMonth, delta);
     renderAll();
@@ -992,12 +962,12 @@ function jumpToNext() {
     renderAll();
 }
 
-// ── Loading ────────────────────────────────────────────────────────────────
+// ── Loading ────────────────────────────────────────────────────────────
 function showLoading(on) {
     document.getElementById("loadingOverlay").classList.toggle("show", on);
 }
 
-// ── Toast ──────────────────────────────────────────────────────────────────
+// ── Toast ──────────────────────────────────────────────────────────────
 let _toastTimer;
 function showToast(msg, type = "success") {
     const el = document.getElementById("toast");
@@ -1007,7 +977,7 @@ function showToast(msg, type = "success") {
     _toastTimer = setTimeout(() => { el.className = ""; }, 3000);
 }
 
-// ── Status badge HTML ──────────────────────────────────────────────────────
+// ── Status badge HTML ──────────────────────────────────────────────────
 function statusBadgeHTML(status) {
     const c = STATUS_COLORS[status] || STATUS_COLORS.pending;
     const label = STATUS_LABEL[status] || status;
@@ -1017,7 +987,7 @@ function statusBadgeHTML(status) {
     </span>`;
 }
 
-// ── Booking Modal: New ─────────────────────────────────────────────────────
+// ── Booking Modal: New ─────────────────────────────────────────────────
 function openNewBooking(y, m, day, evt) {
     if (evt) evt.stopPropagation();
     editingId = null;
@@ -1032,13 +1002,9 @@ function openNewBooking(y, m, day, evt) {
     document.getElementById("fEndDate").value   = dateStr;
     document.getElementById("fStartTime").value = "09:00";
     document.getElementById("fEndTime").value   = "10:00";
-    const selectedUser = getDefaultQualifiedUser();
-    if (selectedUser) {
-        document.getElementById("fUser").value = String(selectedUser.id);
-    }
-    document.getElementById("fPurpose").value = "";
-    document.getElementById("fNotes").value   = "";
-    document.getElementById("fStatus").value  = "pending";
+    document.getElementById("fPurpose").value   = "";
+    document.getElementById("fNotes").value     = "";
+    document.getElementById("fStatus").value    = "pending";
     if (machines.length) document.getElementById("fMachine").selectedIndex = 0;
 
     setFooter("create");
@@ -1046,7 +1012,7 @@ function openNewBooking(y, m, day, evt) {
     setTimeout(() => document.getElementById("fPurpose").focus(), 100);
 }
 
-// ── Booking Modal: View ────────────────────────────────────────────────────
+// ── Booking Modal: View ────────────────────────────────────────────────
 function openViewBooking(id, evt) {
     if (evt) evt.stopPropagation();
     const key = monthKey(curYear, curMonth);
@@ -1084,7 +1050,7 @@ function openViewBooking(id, evt) {
     document.getElementById("bookingOverlay").classList.add("open");
 }
 
-// ── Booking Modal: Edit ────────────────────────────────────────────────────
+// ── Booking Modal: Edit ────────────────────────────────────────────────
 function switchToEdit() {
     let booking = null;
     for (const bArr of Object.values(bookingsCache)) {
@@ -1113,47 +1079,39 @@ function switchToEdit() {
     setFooter("edit");
 }
 
-// ── Footer buttons ─────────────────────────────────────────────────────────
+// ── Footer buttons ─────────────────────────────────────────────────────
 function setFooter(mode, canEdit) {
     const f = document.getElementById("bookingModalFooter");
     if (mode === "create") {
         f.innerHTML = `
-            <button class="btn" onclick="closeBookingModal()">取消</button>
-            <button class="btn btn-primary" onclick="submitBooking()">建立預約</button>
+            <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitBooking()">Create</button>
         `;
     } else if (mode === "view") {
-        const editBtn = canEdit ? `<button class="btn" onclick="switchToEdit()">編輯</button>` : "";
-        const delBtn = canEdit ? `<button class="btn btn-danger" onclick="openDeleteConfirm()">刪除</button>` : "";
         f.innerHTML = `
-            <button class="btn" onclick="closeBookingModal()">關閉</button>
-            ${editBtn}
-            ${delBtn}
+            <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
+            ${canEdit ? '<button class="btn btn-primary" onclick="switchToEdit()">Edit</button>' : ""}
+            ${canEdit ? '<button class="btn btn-danger" onclick="openDeleteConfirm()">Delete</button>' : ""}
         `;
     } else if (mode === "edit") {
         f.innerHTML = `
-            <button class="btn" onclick="closeBookingModal()">取消</button>
-            <button class="btn btn-primary" onclick="submitBooking()">更新預約</button>
+            <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitBooking()">Save</button>
         `;
     }
 }
 
-// ── Submit booking ─────────────────────────────────────────────────────────
 async function submitBooking() {
     const startDate = document.getElementById("fStartDate").value;
     const startTime = document.getElementById("fStartTime").value;
     const endDate   = document.getElementById("fEndDate").value;
     const endTime   = document.getElementById("fEndTime").value;
-    const userId    = parseInt(document.getElementById("fUser").value);
-    const machineId = parseInt(document.getElementById("fMachine").value);
+    const machineId = document.getElementById("fMachine").value;
+    const userId    = document.getElementById("fUser").value;
     const purpose   = document.getElementById("fPurpose").value.trim();
     const notes     = document.getElementById("fNotes").value.trim();
     const status    = document.getElementById("fStatus").value;
 
-    if (!startDate) { showToast("請選擇開始日期", "error"); return; }
-    if (!startTime) { showToast("請選擇開始時間", "error"); return; }
-    if (!endDate) { showToast("請選擇結束日期", "error"); return; }
-    if (!endTime) { showToast("請選擇結束時間", "error"); return; }
-    if (Number.isNaN(userId) || userId <= 0) { showToast("請選擇使用者", "error"); return; }
     if (!purpose) { showToast("請填寫使用目的", "error"); return; }
     if (Number.isNaN(machineId) || machineId <= 0) { showToast("請選擇機台", "error"); return; }
 
@@ -1209,7 +1167,7 @@ async function submitBooking() {
     }
 }
 
-// ── Delete ─────────────────────────────────────────────────────────────────
+// ── Delete ─────────────────────────────────────────────────────────────
 function openDeleteConfirm() {
     deleteTargetId = editingId;
     document.getElementById("confirmOverlay").classList.add("open");
@@ -1241,6 +1199,11 @@ async function confirmDelete() {
     }
 }
 
+// ── Close overlays ─────────────────────────────────────────────────────
+function closeBookingModal() {
+    document.getElementById("bookingOverlay").classList.remove("open");
+}
+
 // Close overlays on backdrop click
 document.getElementById("bookingOverlay").addEventListener("click", e => {
     if (e.target === document.getElementById("bookingOverlay")) closeBookingModal();
@@ -1249,18 +1212,13 @@ document.getElementById("confirmOverlay").addEventListener("click", e => {
     if (e.target === document.getElementById("confirmOverlay")) closeConfirm();
 });
 
-function closeBookingModal() {
-    document.getElementById("bookingOverlay").classList.remove("open");
-    editingId = null;
-}
-
-// ── Wire buttons ───────────────────────────────────────────────────────────
+// ── Wire buttons ───────────────────────────────────────────────────────
 document.getElementById("btnPrev").addEventListener("click", () => navigate(-1));
 document.getElementById("btnNext").addEventListener("click", () => navigate(+1));
 document.getElementById("btnToday").addEventListener("click", jumpToToday);
 document.getElementById("confirmDeleteBtn").addEventListener("click", confirmDelete);
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────
 (async () => {
     populateTimeSelects();
     try {
