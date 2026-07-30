@@ -199,286 +199,295 @@
         }
         .day-num.today {
             background: var(--blue);
-            color: #fff;
+            color: var(--white);
         }
 
         .chip {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            border-radius: 5px;
-            padding: 3px 6px;
+            display: inline-block;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin: 2px 0;
             font-size: 11px;
-            font-weight: 600;
-            margin-top: 3px;
-            cursor: pointer;
-            line-height: 1.3;
-            transition: filter .1s;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: all .12s;
         }
-        .chip:hover { filter: brightness(.93); }
+        .chip:hover { background: var(--bg2); box-shadow: var(--shadow); }
+        .chip.pending { border-left: 3px solid var(--pending-dot); }
+        .chip.approved { border-left: 3px solid var(--approved-dot); }
+        .chip.completed { border-left: 3px solid var(--completed-dot); }
+        .chip.cancelled { border-left: 3px solid var(--cancelled-dot); opacity: 0.6; }
         .chip-dot {
-            width: 7px; height: 7px;
+            display: inline-block;
+            width: 6px; height: 6px;
             border-radius: 50%;
-            flex-shrink: 0;
+            margin-right: 4px;
         }
-        .chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .chip.pending   { background: var(--pending-bg);   color: var(--pending-text); }
-        .chip.approved  { background: var(--approved-bg);  color: var(--approved-text); }
-        .chip.completed { background: var(--completed-bg); color: var(--completed-text); }
-        .chip.cancelled { background: var(--cancelled-bg); color: var(--cancelled-text); }
-        .chip.pending   .chip-dot { background: var(--pending-dot); }
-        .chip.approved  .chip-dot { background: var(--approved-dot); }
+        .chip.pending .chip-dot { background: var(--pending-dot); }
+        .chip.approved .chip-dot { background: var(--approved-dot); }
         .chip.completed .chip-dot { background: var(--completed-dot); }
         .chip.cancelled .chip-dot { background: var(--cancelled-dot); }
-
+        .chip-text {
+            font-weight: 500;
+        }
         .more-chip {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--muted);
-            padding: 2px 6px;
             margin-top: 2px;
+            font-weight: 600;
         }
 
-        /* ── Legend ── */
         .legend {
             display: flex;
             gap: 16px;
-            flex-wrap: wrap;
             padding: 12px 20px;
+            background: var(--bg2);
             border-top: 1px solid var(--border);
             font-size: 12px;
+            flex-wrap: wrap;
         }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
 
-        /* ── Modal overlay ── */
+        /* ── Modals ── */
         .overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,.45);
             display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,.3);
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            padding: 16px;
         }
-        .overlay.open { display: flex; }
+        .overlay.open {
+            display: flex;
+        }
 
         .modal {
             background: var(--white);
-            border-radius: 18px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow-lg);
-            width: 100%;
-            max-width: 560px;
-            max-height: 90vh;
-            overflow-y: auto;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
         }
+
         .modal-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 20px 24px 14px;
+            align-items: center;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: var(--white);
-            z-index: 1;
         }
         .modal-header h3 {
-            font-size: 18px;
-            font-weight: 800;
+            font-size: 16px;
+            font-weight: 700;
             color: var(--navy);
+            margin: 0;
         }
+
         .modal-close {
             background: none;
             border: none;
-            font-size: 22px;
-            cursor: pointer;
+            font-size: 20px;
             color: var(--muted);
-            width: 32px; height: 32px;
-            border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            transition: background .12s;
-        }
-        .modal-close:hover { background: var(--bg2); color: var(--text); }
-        .modal-body { padding: 20px 24px; }
-        .modal-footer {
+            cursor: pointer;
+            padding: 0;
+            width: 28px; height: 28px;
             display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            padding: 16px 24px 20px;
-            border-top: 1px solid var(--border);
+            align-items: center;
+            justify-content: center;
+            transition: color .12s;
+        }
+        .modal-close:hover { color: var(--navy); }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
         }
 
-        /* ── Form fields ── */
-        .field { margin-bottom: 14px; }
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .12s;
+            background: var(--white);
+            color: var(--text);
+        }
+        .btn:hover {
+            background: var(--bg2);
+        }
+        .btn-primary {
+            background: var(--blue);
+            color: var(--white);
+            border-color: var(--blue);
+        }
+        .btn-primary:hover {
+            background: var(--blue-hover);
+            border-color: var(--blue-hover);
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: var(--white);
+            border-color: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        /* Detail rows (view mode) */
+        .detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: var(--muted);
+            min-width: 80px;
+        }
+        .detail-val {
+            color: var(--text);
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Form fields (edit/create mode) */
+        .field-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .field {
+            flex: 1;
+        }
         .field label {
             display: block;
             font-size: 13px;
-            font-weight: 700;
-            color: #374151;
-            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 4px;
         }
-        .field label .req { color: #ef4444; margin-left: 2px; }
-        .field input, .field select, .field textarea {
+        .field input,
+        .field select,
+        .field textarea {
             width: 100%;
-            border: 1.5px solid #d1d5db;
-            border-radius: 8px;
-            padding: 9px 12px;
-            font-size: 14px;
-            color: var(--text);
-            background: var(--white);
-            transition: border-color .12s;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
             font-family: inherit;
+            color: var(--text);
         }
-        .field input:focus, .field select:focus, .field textarea:focus {
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
             outline: none;
             border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
         }
-        .field textarea { resize: vertical; min-height: 72px; }
-        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .field-readonly {
-            padding: 9px 12px;
-            border-radius: 8px;
-            background: var(--bg2);
-            font-size: 14px;
-            color: var(--muted);
+        .field textarea {
+            resize: vertical;
+            min-height: 60px;
         }
+        .req {
+            color: #ef4444;
+        }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 5px 12px;
-            border-radius: 99px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        /* ── Buttons ── */
-        .btn {
-            border: none;
-            border-radius: 9px;
-            padding: 0 20px;
-            height: 40px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: filter .12s, opacity .12s;
-        }
-        .btn:disabled { opacity: .5; cursor: not-allowed; }
-        .btn-primary { background: var(--blue); color: #fff; }
-        .btn-primary:hover:not(:disabled) { background: var(--blue-hover); }
-        .btn-danger { background: #ef4444; color: #fff; }
-        .btn-danger:hover:not(:disabled) { background: #dc2626; }
-        .btn-ghost {
-            background: none;
-            border: 1.5px solid var(--border);
-            color: var(--text);
-        }
-        .btn-ghost:hover:not(:disabled) { background: var(--bg2); }
-        .btn-warning { background: #f59e0b; color: #fff; }
-        .btn-warning:hover:not(:disabled) { background: #d97706; }
-
-        /* Detail view */
-        .detail-row {
-            display: flex;
-            gap: 8px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-            align-items: flex-start;
-        }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label {
-            min-width: 90px;
-            font-weight: 700;
-            color: var(--muted);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 12px;
-            padding-top: 1px;
-        }
-        .detail-val { color: var(--text); flex: 1; }
-
-        /* ── Confirm modal ── */
-        .confirm-modal {
-            max-width: 380px;
-        }
-        .confirm-modal .modal-body {
-            text-align: center;
-            padding: 28px 24px 16px;
-        }
-        .confirm-icon {
-            font-size: 44px;
-            margin-bottom: 14px;
-        }
-        .confirm-modal p {
-            font-size: 15px;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-
-        /* ── Toast ── */
-        #toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: #1e293b;
-            color: #fff;
-            padding: 12px 22px;
-            border-radius: 10px;
-            font-size: 14px;
             font-weight: 600;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity .25s, transform .25s;
-            white-space: nowrap;
-            pointer-events: none;
         }
-        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        #toast.success { background: #065f46; }
-        #toast.error { background: #991b1b; }
 
-        /* ── Loading spinner ── */
-        .loading-overlay {
-            position: fixed; inset: 0;
-            background: rgba(248,250,252,.7);
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            max-width: 300px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--text);
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all .3s;
+            pointer-events: none;
+            font-size: 13px;
             z-index: 2000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .toast.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .toast.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        /* Loading spinner */
+        .loading-overlay {
             display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, .2);
+            z-index: 500;
             align-items: center;
             justify-content: center;
         }
-        .loading-overlay.show { display: flex; }
+        .loading-overlay.show {
+            display: flex;
+        }
         .spinner {
-            width: 40px; height: 40px;
-            border: 4px solid #e2e8f0;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
             border-top-color: var(--blue);
             border-radius: 50%;
-            animation: spin .7s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Responsive ── */
-        @media (max-width: 900px) {
-            .cal-layout {
-                grid-template-columns: 1fr;
-            }
-            .mini-cal-aside { display: none; }
-            .cal-table td { height: 90px; padding: 5px 4px 4px; }
-            .day-num { font-size: 13px; width: 24px; height: 24px; }
-            .chip { font-size: 10px; padding: 2px 4px; }
-        }
-        @media (max-width: 600px) {
-            .topnav-links { gap: 14px; }
-            .topnav-links a { font-size: 13px; }
-            .month-nav h2 { font-size: 17px; }
-            .cal-table th { font-size: 11px; padding: 8px 3px; }
-            .cal-table td { height: 72px; }
-            .modal { border-radius: 12px; }
-            .field-row { grid-template-columns: 1fr; gap: 0; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -608,56 +617,66 @@
                         <select id="fEndTime"></select>
                     </div>
                 </div>
-                <div class="field">
-                    <label>使用者</label>
-                    <select id="fUser"></select>
+                <div class="field-row">
+                    <div class="field">
+                        <label>使用者 <span class="req">*</span></label>
+                        <select id="fUser"></select>
+                    </div>
                 </div>
-                <div class="field">
-                    <label>使用機台 <span class="req">*</span></label>
-                    <select id="fMachine"></select>
+                <div class="field-row">
+                    <div class="field">
+                        <label>機台 <span class="req">*</span></label>
+                        <select id="fMachine"></select>
+                    </div>
                 </div>
-                <div class="field">
-                    <label>使用目的 <span class="req">*</span></label>
-                    <textarea id="fPurpose" placeholder="請說明使用目的…"></textarea>
+                <div class="field-row">
+                    <div class="field">
+                        <label>使用目的 <span class="req">*</span></label>
+                        <input type="text" id="fPurpose" placeholder="e.g., 3D printing, testing">
+                    </div>
                 </div>
-                <div class="field">
-                    <label>備註（可選）</label>
-                    <textarea id="fNotes" placeholder="其他備註…" style="min-height:52px"></textarea>
+                <div class="field-row">
+                    <div class="field">
+                        <label>備註</label>
+                        <textarea id="fNotes" placeholder="Optional notes"></textarea>
+                    </div>
                 </div>
-                <div class="field">
-                    <label>狀態</label>
-                    <select id="fStatus">
-                        <option value="pending">待審 pending</option>
-                        <option value="approved">已批 approved</option>
-                        <option value="completed">完成 completed</option>
-                        <option value="cancelled">取消 cancelled</option>
-                    </select>
+                <div class="field-row">
+                    <div class="field">
+                        <label>狀態 <span class="req">*</span></label>
+                        <select id="fStatus">
+                            <option value="pending">待審</option>
+                            <option value="approved">已批</option>
+                            <option value="completed">完成</option>
+                            <option value="cancelled">取消</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="modal-footer" id="bookingModalFooter">
-            <!-- buttons injected by JS -->
-        </div>
+        <div class="modal-footer" id="bookingModalFooter"></div>
     </div>
 </div>
 
-<!-- ════════════════════════════ CONFIRM DELETE MODAL ════════════════════════════ -->
+<!-- ════════════════════════════ CONFIRM DELETE ════════════════════════════ -->
 <div class="overlay" id="confirmOverlay">
-    <div class="modal confirm-modal">
-        <div class="modal-body">
-            <div class="confirm-icon">🗑️</div>
-            <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--navy)">確認刪除？</h3>
-            <p>此操作無法復原，預約將被永久刪除。</p>
+    <div class="modal">
+        <div class="modal-header">
+            <h3>刪除預約</h3>
+            <button class="modal-close" onclick="closeConfirm()">✕</button>
         </div>
-        <div class="modal-footer" style="justify-content:center;">
-            <button class="btn btn-ghost" onclick="closeConfirm()">取消</button>
-            <button class="btn btn-danger" id="confirmDeleteBtn">確認刪除</button>
+        <div class="modal-body">
+            <p>確定要刪除此預約嗎？</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeConfirm()">取消</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">刪除</button>
         </div>
     </div>
 </div>
 
 <!-- Toast -->
-<div id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────
@@ -700,36 +719,38 @@ function buildTimeOptions() {
     for (let h = 7; h <= 22; h++) {
         for (let m = 0; m < 60; m += 15) {
             if (h === 22 && m > 0) break;
-            opts.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
+            opts.push(`${pad(h)}:${pad(m)}`);
         }
     }
     return opts;
 }
-const TIME_OPTIONS = buildTimeOptions();
 
 function populateTimeSelects() {
-    [document.getElementById("fStartTime"), document.getElementById("fEndTime")].forEach(sel => {
-        sel.innerHTML = TIME_OPTIONS.map(t => `<option value="${t}">${t}</option>`).join("");
-    });
+    const opts = buildTimeOptions().map(t => `<option value="${t}">${t}</option>`).join("");
+    document.getElementById("fStartTime").innerHTML = opts;
+    document.getElementById("fEndTime").innerHTML = opts;
 }
 
-// ── Utility ──────────────────────────────────────────────────────────────
-function pad(n) { return String(n).padStart(2, "0"); }
+// ── Helpers ────────────────────────────────────────────────────────────
+function pad(n) { return String(n).padStart(2, '0'); }
 
-function fmtDatetime(iso) {
-    const d = new Date(iso);
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function fmtDatetime(isoStr) {
+    const d = new Date(isoStr);
+    return d.toLocaleString("zh-TW");
 }
 
-function isoToDateStr(iso) {
-    const d = new Date(iso);
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+function isoToDateStr(isoStr) {
+    const d = new Date(isoStr);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function isoToTimeStr(iso) {
-    const d = new Date(iso);
-    // Round down to nearest 15 min in the time options list
-    let h = d.getHours(), m = d.getMinutes();
+function isoToTimeStr(isoStr) {
+    const d = new Date(isoStr);
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Round down to nearest 15 min in the time options list
+function timeToOption(h, m) {
     m = Math.floor(m / 15) * 15;
     return `${pad(h)}:${pad(m)}`;
 }
@@ -766,7 +787,7 @@ function buildCalGrid(y, m) {
     return weeks;
 }
 
-// ── API helpers ──────────────────────────────────────────────────────────
+// ── API helpers ──────────────────────────────────────────────────────
 async function apiFetch(url, opts = {}) {
     const r = await fetch(url, {
         headers: { "Content-Type": "application/json" },
@@ -778,10 +799,13 @@ async function apiFetch(url, opts = {}) {
 }
 
 async function loadMachines() {
-    machines = await apiFetch("/api/machines");
-    // populate dropdown
-    const sel = document.getElementById("fMachine");
-    sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+    try {
+        machines = await apiFetch("/api/machines");
+        const sel = document.getElementById("fMachine");
+        sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+    } catch (e) {
+        showToast("載入機台失敗: " + e.message, "error");
+    }
 }
 
 function getDefaultQualifiedUser() {
@@ -829,12 +853,15 @@ function invalidateCache(y, m) {
 function groupByDay(bookings, y, m) {
     const map = {};
     for (const b of bookings) {
-        const startDate = new Date(b.start);
-        const endDate   = new Date(b.end);
+        // Parse ISO strings consistently by extracting date parts
+        const startIso = b.start.substring(0, 10);
+        const endIso = b.end.substring(0, 10);
+        const [sy, sm, sd] = startIso.split('-').map(Number);
+        const [ey, em, ed] = endIso.split('-').map(Number);
 
         // Iterate through every calendar day the booking spans
-        const cur  = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-        const last = new Date(endDate.getFullYear(),   endDate.getMonth(),   endDate.getDate());
+        let cur = new Date(sy, sm - 1, sd);
+        let last = new Date(ey, em - 1, ed);
 
         while (cur <= last) {
             if (cur.getFullYear() === y && cur.getMonth() + 1 === m) {
@@ -1091,41 +1118,41 @@ function setFooter(mode, canEdit) {
     const f = document.getElementById("bookingModalFooter");
     if (mode === "create") {
         f.innerHTML = `
-            <button class="btn btn-ghost" onclick="closeBookingModal()">取消</button>
-            <button class="btn btn-primary" onclick="submitBooking()">建立預約</button>`;
+            <button class="btn" onclick="closeBookingModal()">取消</button>
+            <button class="btn btn-primary" onclick="submitBooking()">建立預約</button>
+        `;
     } else if (mode === "view") {
-        f.innerHTML = canEdit
-            ? `<button class="btn btn-ghost" onclick="closeBookingModal()">關閉</button>
-               <button class="btn btn-warning" onclick="openDeleteConfirm()">🗑 刪除</button>
-               <button class="btn btn-primary" onclick="switchToEdit()">✏️ 編輯</button>`
-            : `<button class="btn btn-ghost" onclick="closeBookingModal()">關閉</button>`;
-    } else { // edit
+        const editBtn = canEdit ? `<button class="btn" onclick="switchToEdit()">編輯</button>` : "";
+        const delBtn = canEdit ? `<button class="btn btn-danger" onclick="openDeleteConfirm()">刪除</button>` : "";
         f.innerHTML = `
-            <button class="btn btn-ghost" onclick="closeBookingModal()">取消</button>
-            <button class="btn btn-primary" onclick="submitBooking()">儲存變更</button>`;
+            <button class="btn" onclick="closeBookingModal()">關閉</button>
+            ${editBtn}
+            ${delBtn}
+        `;
+    } else if (mode === "edit") {
+        f.innerHTML = `
+            <button class="btn" onclick="closeBookingModal()">取消</button>
+            <button class="btn btn-primary" onclick="submitBooking()">更新預約</button>
+        `;
     }
 }
 
-function closeBookingModal() {
-    document.getElementById("bookingOverlay").classList.remove("open");
-    editingId = null;
-}
-
-// ── Submit ─────────────────────────────────────────────────────────────────
+// ── Submit booking ─────────────────────────────────────────────────────────
 async function submitBooking() {
     const startDate = document.getElementById("fStartDate").value;
     const startTime = document.getElementById("fStartTime").value;
     const endDate   = document.getElementById("fEndDate").value;
     const endTime   = document.getElementById("fEndTime").value;
-    const userId    = parseInt(document.getElementById("fUser").value, 10);
-    const machineId = parseInt(document.getElementById("fMachine").value, 10);
+    const userId    = parseInt(document.getElementById("fUser").value);
+    const machineId = parseInt(document.getElementById("fMachine").value);
     const purpose   = document.getElementById("fPurpose").value.trim();
     const notes     = document.getElementById("fNotes").value.trim();
     const status    = document.getElementById("fStatus").value;
 
-    if (!startDate || !startTime || !endDate || !endTime) {
-        showToast("請填寫日期和時間", "error"); return;
-    }
+    if (!startDate) { showToast("請選擇開始日期", "error"); return; }
+    if (!startTime) { showToast("請選擇開始時間", "error"); return; }
+    if (!endDate) { showToast("請選擇結束日期", "error"); return; }
+    if (!endTime) { showToast("請選擇結束時間", "error"); return; }
     if (Number.isNaN(userId) || userId <= 0) { showToast("請選擇使用者", "error"); return; }
     if (!purpose) { showToast("請填寫使用目的", "error"); return; }
     if (Number.isNaN(machineId) || machineId <= 0) { showToast("請選擇機台", "error"); return; }
@@ -1221,6 +1248,11 @@ document.getElementById("bookingOverlay").addEventListener("click", e => {
 document.getElementById("confirmOverlay").addEventListener("click", e => {
     if (e.target === document.getElementById("confirmOverlay")) closeConfirm();
 });
+
+function closeBookingModal() {
+    document.getElementById("bookingOverlay").classList.remove("open");
+    editingId = null;
+}
 
 // ── Wire buttons ───────────────────────────────────────────────────────────
 document.getElementById("btnPrev").addEventListener("click", () => navigate(-1));
