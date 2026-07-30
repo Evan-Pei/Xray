@@ -48,14 +48,24 @@ def _seed_machines():
 
 
 def _seed_admin_user():
+    """
+    Create or update the admin user.
+    
+    - If ADMIN_USERNAME exists in database, skip (preserve existing password)
+    - If not, create new admin user with ADMIN_PASSWORD from environment
+    - Only creates once; password won't change unless manually updated through admin panel
+    """
     admin_username = os.environ.get("ADMIN_USERNAME", "admin")
     existing_user = User.query.filter_by(username=admin_username).first()
+    
+    # User already exists, keep their password unchanged
     if existing_user:
         if not existing_user.is_qualified:
             existing_user.is_qualified = True
             db.session.commit()
         return
 
+    # Create new admin user with password from environment variable
     admin_password = os.environ.get("ADMIN_PASSWORD")
     if not admin_password:
         if current_app.config.get("TESTING", False):
