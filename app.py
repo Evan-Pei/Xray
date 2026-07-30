@@ -49,7 +49,11 @@ def _seed_machines():
 
 def _seed_admin_user():
     admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-    if User.query.filter_by(username=admin_username).first():
+    existing_user = User.query.filter_by(username=admin_username).first()
+    if existing_user:
+        if not existing_user.is_qualified:
+            existing_user.is_qualified = True
+            db.session.commit()
         return
 
     admin_password = os.environ.get("ADMIN_PASSWORD")
@@ -63,7 +67,7 @@ def _seed_admin_user():
                 admin_password,
             )
 
-    user = User(username=admin_username)
+    user = User(username=admin_username, is_qualified=True)
     user.set_password(admin_password)
     db.session.add(user)
     db.session.commit()

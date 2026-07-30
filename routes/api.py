@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import and_
 
-from models import Booking, BookingHistory, Machine, db
+from models import Booking, BookingHistory, Machine, User, db
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -54,6 +54,13 @@ def list_machines():
     return jsonify([machine.to_dict() for machine in Machine.query.order_by(Machine.name).all()])
 
 
+@api_bp.get("/qualified-users")
+@login_required
+def list_qualified_users():
+    users = User.query.filter_by(is_qualified=True).order_by(User.username.asc()).all()
+    return jsonify([{"id": user.id, "username": user.username} for user in users])
+
+
 @api_bp.get("/bookings")
 @login_required
 def list_bookings():
@@ -80,6 +87,11 @@ def create_booking():
     data = request.get_json(silent=True) or {}
 
     try:
+        user_id = int(data.get("user_id", current_user.id))
+    except (TypeError, ValueError):
+        return jsonify({"error": "invalid user_id"}), 400
+
+    try:
         machine_id = int(data.get("machine_id"))
         start_time = _parse_datetime(data.get("start"), "start")
         end_time = _parse_datetime(data.get("end"), "end")
@@ -100,18 +112,27 @@ def create_booking():
     machine = db.session.get(Machine, machine_id)
     if not machine:
         return jsonify({"error": "machine not found"}), 404
+
+    booking_user = db.session.get(User, user_id)
+    if not booking_user:
+        return jsonify({"error": "user not found"}), 400
+    if not booking_user.is_qualified:
+        return jsonify({"error": "selected user is not qualified"}), 403
+    if booking_user.id != current_user.id and not current_user.is_admin():
+        return jsonify({"error": "admin required to book for other users"}), 403
+
     if _booking_conflict(machine_id, start_time, end_time):
         return jsonify({"error": "booking conflict detected"}), 409
 
     booking = Booking(
         title=title,
         purpose=purpose,
-        applicant_name=current_user.username,
+        applicant_name=booking_user.username,
         start_time=start_time,
         end_time=end_time,
         status=status,
         machine=machine,
-        user_id=current_user.id,
+        user_id=booking_user.id,
     )
     db.session.add(booking)
     db.session.flush()

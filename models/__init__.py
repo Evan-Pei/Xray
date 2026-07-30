@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import os
 
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -18,6 +19,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_qualified = db.Column(db.Boolean, nullable=False, default=False)
     bookings = db.relationship("Booking", back_populates="user", lazy=True)
 
     def set_password(self, password):
@@ -25,6 +27,9 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def is_admin(self):
+        return self.username == os.environ.get("ADMIN_USERNAME", "admin")
 
 
 class Machine(db.Model):
@@ -73,6 +78,7 @@ class Booking(db.Model):
     def to_dict(self, current_user_id=None):
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "title": self.title,
             "purpose": self.purpose,
             "applicant_name": self.applicant_name,

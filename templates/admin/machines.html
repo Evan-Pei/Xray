@@ -258,6 +258,7 @@
             <div class="nav">
                 <a href="/dashboard">Dashboard</a>
                 <a href="/calendar">Calendar</a>
+                <a href="{{ url_for('admin.user_list') }}">使用者</a>
                 <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
             </div>
         </section>

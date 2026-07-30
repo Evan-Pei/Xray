@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Blueprint, abort, render_template, request
 from flask_login import current_user, login_required
 
-from models import Booking, Machine, db
+from models import Booking, Machine, User, db
 
 web_bp = Blueprint("web", __name__, url_prefix="/")
 
@@ -57,6 +57,11 @@ def calendar_view():
     except (ValueError, TypeError):
         year, month = today.year, today.month
 
+    qualified_users = [
+        {"id": user.id, "username": user.username}
+        for user in User.query.filter_by(is_qualified=True).order_by(User.username.asc()).all()
+    ]
+
     return render_template(
         "calendar.html",
         init_year=year,
@@ -65,6 +70,8 @@ def calendar_view():
         today_month=today.month,
         today_day=today.day,
         current_username=current_user.username,
+        current_user_id=current_user.id,
+        qualified_users=qualified_users,
     )
 
 

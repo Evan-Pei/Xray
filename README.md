@@ -92,6 +92,7 @@ Follow PEP 8 guidelines for Python code.
 - **Port already in use**: Change the port in the configuration or kill the process using that port
 - **Module not found errors**: Ensure your virtual environment is activated and dependencies are installed
 - **Database connection issues**: Verify database configuration in `.env` or `config.py`
+- **After model changes (SQLite)**: this project uses `db.create_all()` and does not run schema migrations for existing SQLite files. If you see missing-column errors, delete `xray.db` and restart the app to rebuild tables.
 
 ## Contributing
 
