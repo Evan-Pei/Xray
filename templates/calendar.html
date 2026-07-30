@@ -812,10 +812,18 @@ async function loadQualifiedUsers() {
 async function loadBookings(y, m) {
     const key = monthKey(y, m);
     if (bookingsCache[key]) return bookingsCache[key];
-    // fetch entire month + a small buffer
-    const start = `${y}-${pad(m)}-01T00:00:00`;
-    const endDay = daysInMonth(y, m);
-    const end   = `${y}-${pad(m)}-${pad(endDay)}T23:59:59`;
+    
+    // 擴大查詢範圍：前一天 → 後一天
+    // 這樣可以捕捉跨越月份邊界的預約
+    // 例：查詢7月時，實際查詢範圍為 6月30日00:00 → 8月1日23:59:59
+    const [prevY, prevM] = addMonths(y, m, -1);
+    const prevMonthDays = daysInMonth(prevY, prevM);
+    const start = `${prevY}-${pad(prevM)}-${pad(prevMonthDays)}T00:00:00`;
+    
+    const nextMonthDays = daysInMonth(y, m);
+    const [nextY, nextM] = addMonths(y, m, +1);
+    const end = `${nextY}-${pad(nextM)}-01T23:59:59`;
+    
     const data = await apiFetch(`/api/bookings?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
     bookingsCache[key] = data;
     return data;
@@ -825,11 +833,10 @@ function invalidateCache(y, m) {
     delete bookingsCache[monthKey(y, m)];
 }
 
-// ── Calendar rendering ────────────────────────────────────────────────────
+// ── Calendar rendering ──────────────────────────────────���─────────────────
 // 新版：展開跨日預約到所有涵蓋的日期
 function groupByDay(bookings, y, m) {
     const map = {};
-    const monthDays = daysInMonth(y, m);
     
     for (const b of bookings) {
         const startDate = new Date(b.start);
@@ -930,7 +937,6 @@ async function renderMain(y, m) {
 // 新版：計算預約覆蓋的所有日期（包括跨日）
 function getDaysWithBookings(bookings, y, m) {
     const daysSet = new Set();
-    const monthDays = daysInMonth(y, m);
     
     for (const b of bookings) {
         const startDate = new Date(b.start);
