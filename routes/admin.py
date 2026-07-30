@@ -1,5 +1,7 @@
+from functools import wraps
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
 from models import (
@@ -10,9 +12,22 @@ from models import (
     Machine,
     User,
     db,
+    login_manager,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+
+def admin_required(f):
+    """Decorator: require authenticated admin user, else 401-redirect or 403."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return login_manager.unauthorized()
+        if not current_user.is_admin():
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
 
 
 def _is_checked(field_name):
@@ -20,13 +35,13 @@ def _is_checked(field_name):
 
 
 @admin_bp.route("/", methods=["GET"])
-@login_required
+@admin_required
 def index():
     return redirect(url_for("admin.machine_list"))
 
 
 @admin_bp.route("/machines", methods=["GET", "POST"])
-@login_required
+@admin_required
 def machine_list():
     """List all machines and handle creation"""
     if request.method == "POST":
@@ -59,7 +74,7 @@ def machine_list():
 
 
 @admin_bp.route("/machines/<int:machine_id>/edit", methods=["GET", "POST"])
-@login_required
+@admin_required
 def edit_machine(machine_id: int):
     """Edit a specific machine"""
     machine = db.session.get(Machine, machine_id)
@@ -119,7 +134,7 @@ def edit_machine(machine_id: int):
 
 
 @admin_bp.route("/machines/<int:machine_id>/delete", methods=["POST"])
-@login_required
+@admin_required
 def delete_machine(machine_id: int):
     """Delete a machine"""
     machine = db.session.get(Machine, machine_id)
@@ -133,7 +148,7 @@ def delete_machine(machine_id: int):
 
 
 @admin_bp.route("/users", methods=["GET", "POST"])
-@login_required
+@admin_required
 def user_list():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -159,7 +174,7 @@ def user_list():
 
 
 @admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
-@login_required
+@admin_required
 def edit_user(user_id: int):
     user = db.session.get(User, user_id)
     if user is None:
@@ -190,7 +205,7 @@ def edit_user(user_id: int):
 
 
 @admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
-@login_required
+@admin_required
 def delete_user(user_id: int):
     user = db.session.get(User, user_id)
     if user is None:
@@ -206,7 +221,7 @@ def delete_user(user_id: int):
 
 
 @admin_bp.route("/users/<int:user_id>/toggle-qualified", methods=["POST"])
-@login_required
+@admin_required
 def toggle_user_qualified(user_id: int):
     user = db.session.get(User, user_id)
     if user is None:

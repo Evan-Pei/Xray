@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Xray | 預約詳情</title>
+    <style>
+        :root {
+            --navy: #0f172a;
+            --blue: #2563eb;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --bg2: #f1f5f9;
+            --text: #1e293b;
+            --muted: #64748b;
+            --pending-bg: #fef3c7; --pending-text: #92400e; --pending-dot: #f59e0b;
+            --approved-bg: #d1fae5; --approved-text: #065f46; --approved-dot: #10b981;
+            --completed-bg: #dbeafe; --completed-text: #1e40af; --completed-dot: #3b82f6;
+            --cancelled-bg: #f1f5f9; --cancelled-text: #475569; --cancelled-dot: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+        .container { max-width: 780px; margin: 40px auto; padding: 0 20px 40px; }
+        .header { background: var(--navy); color: #fff; border-radius: 18px; padding: 26px 28px;
+                  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .header h1 { margin: 0; font-size: 26px; }
+        .header p { margin: 6px 0 0; color: rgba(255,255,255,.72); font-size: 14px; }
+        .nav { display: flex; gap: 16px; flex-wrap: wrap; }
+        .nav a { color: #93c5fd; text-decoration: none; font-weight: 700; font-size: 15px; }
+        .nav a:hover { color: #fff; }
+        .panel { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px;
+                 margin-top: 22px; box-shadow: 0 6px 18px rgba(15,23,42,.04); }
+        .panel h2 { margin: 0 0 16px; font-size: 20px; color: #0b2450; }
+        .detail-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { min-width: 110px; font-weight: 700; color: var(--muted); font-size: 12px; padding-top: 2px; }
+        .detail-val { color: var(--text); flex: 1; line-height: 1.5; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 99px; font-size: 13px; font-weight: 700;
+        }
+        .status-badge.pending   { background: var(--pending-bg);   color: var(--pending-text); }
+        .status-badge.approved  { background: var(--approved-bg);  color: var(--approved-text); }
+        .status-badge.completed { background: var(--completed-bg); color: var(--completed-text); }
+        .status-badge.cancelled { background: var(--cancelled-bg); color: var(--cancelled-text); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .pending   .status-dot { background: var(--pending-dot); }
+        .approved  .status-dot { background: var(--approved-dot); }
+        .completed .status-dot { background: var(--completed-dot); }
+        .cancelled .status-dot { background: var(--cancelled-dot); }
+
+        /* History timeline */
+        .timeline { list-style: none; margin: 0; padding: 0; }
+        .timeline li { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .timeline li:last-child { border-bottom: none; }
+        .tl-icon {
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .tl-icon.created  { background: #d1fae5; }
+        .tl-icon.updated  { background: #dbeafe; }
+        .tl-icon.deleted  { background: #fee2e2; }
+        .tl-meta { flex: 1; }
+        .tl-action { font-weight: 700; text-transform: capitalize; }
+        .tl-time { color: var(--muted); font-size: 12px; margin-top: 2px; }
+        .tl-snapshot { margin-top: 6px; background: var(--bg2); border-radius: 6px; padding: 8px 10px;
+                       font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 20px;
+                     color: var(--blue); text-decoration: none; font-weight: 700; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<main class="container">
+    <section class="header">
+        <div>
+            <h1>預約詳情 Booking Detail</h1>
+            <p>Booking #{{ booking.id }}</p>
+        </div>
+        <nav class="nav">
+            <a href="/">首頁</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/calendar">行事曆 Calendar</a>
+            <a href="{{ url_for('web.list_bookings') }}">我的預約</a>
+        </nav>
+    </section>
+
+    <!-- Booking details -->
+    <section class="panel">
+        <h2>預約資訊 Booking Info</h2>
+        <div class="detail-row">
+            <span class="detail-label">狀態 Status</span>
+            <span class="detail-val">
+                <span class="status-badge {{ booking.status }}">
+                    <span class="status-dot"></span>
+                    {{ booking.status }}
+                </span>
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">機台 Machine</span>
+            <span class="detail-val">{{ booking.machine.name }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">開始 Start</span>
+            <span class="detail-val">{{ booking.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">結束 End</span>
+            <span class="detail-val">{{ booking.end_time.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">申請人 Applicant</span>
+            <span class="detail-val">{{ booking.applicant_name }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">使用目的 Purpose</span>
+            <span class="detail-val">{{ booking.purpose }}</span>
+        </div>
+        {% if booking.title and booking.title != '機台使用申請' %}
+        <div class="detail-row">
+            <span class="detail-label">備註 Notes</span>
+            <span class="detail-val">{{ booking.title }}</span>
+        </div>
+        {% endif %}
+        <div class="detail-row">
+            <span class="detail-label">建立時間 Created</span>
+            <span class="detail-val">{{ booking.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+    </section>
+
+    <!-- History -->
+    <section class="panel">
+        <h2>異動記錄 Change History</h2>
+        {% if booking.history %}
+        <ul class="timeline">
+            {% for entry in booking.history %}
+            {% set icons = {'created': '✅', 'updated': '✏️', 'deleted': '🗑️'} %}
+            <li>
+                <span class="tl-icon {{ entry.action }}">{{ icons.get(entry.action, '•') }}</span>
+                <div class="tl-meta">
+                    <div class="tl-action">{{ entry.action }}</div>
+                    <div class="tl-time">{{ entry.changed_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                    <div class="tl-snapshot">
+                        狀態: {{ entry.snapshot.get('status', '—') }} ·
+                        機台: {{ entry.snapshot.get('machine_name', '—') }} ·
+                        {{ entry.snapshot.get('start', '—')[:16].replace('T', ' ') }}
+                        → {{ entry.snapshot.get('end', '—')[:16].replace('T', ' ') }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color:var(--muted);font-size:14px">尚無異動記錄。</p>
+        {% endif %}
+    </section>
+
+    <a class="back-link" href="{{ url_for('web.list_bookings') }}">← 返回預約列表</a>
+</main>
+</body>
+</html>

@@ -108,6 +108,8 @@ def create_booking():
         return jsonify({"error": "start must be earlier than end"}), 400
     if status not in ALLOWED_STATUSES:
         return jsonify({"error": "invalid status"}), 400
+    if status == "approved" and not current_user.is_admin():
+        return jsonify({"error": "only admin can approve bookings"}), 403
 
     machine = db.session.get(Machine, machine_id)
     if not machine:
@@ -147,7 +149,7 @@ def update_booking(booking_id):
     booking = db.session.get(Booking, booking_id)
     if not booking or booking.is_deleted:
         return jsonify({"error": "booking not found"}), 404
-    if booking.user_id != current_user.id:
+    if booking.user_id != current_user.id and not current_user.is_admin():
         return jsonify({"error": "forbidden"}), 403
 
     data = request.get_json(silent=True) or {}
@@ -169,6 +171,8 @@ def update_booking(booking_id):
         return jsonify({"error": "start must be earlier than end"}), 400
     if status not in ALLOWED_STATUSES:
         return jsonify({"error": "invalid status"}), 400
+    if status == "approved" and not current_user.is_admin():
+        return jsonify({"error": "only admin can approve bookings"}), 403
 
     machine = db.session.get(Machine, machine_id)
     if not machine:

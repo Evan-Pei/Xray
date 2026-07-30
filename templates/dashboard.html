@@ -70,6 +70,48 @@
             </article>
             {% endfor %}
         </section>
+
+        <!-- 今日預約 – Today's Bookings -->
+        <h2 class="section-title">今日預約 – Today's Bookings</h2>
+        {% if bookings %}
+        <section style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(15,23,42,.04)">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+                <thead>
+                    <tr style="background:#f8fafc">
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">狀態</th>
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">機台</th>
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">開始</th>
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">結束</th>
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">申請人</th>
+                        <th style="padding:10px 14px;text-align:left;color:#64748b;font-size:12px;font-weight:700;border-bottom:1px solid #e2e8f0">目的</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    {% set status_styles = {
+                        'pending':   'background:#fef3c7;color:#92400e',
+                        'approved':  'background:#d1fae5;color:#065f46',
+                        'completed': 'background:#dbeafe;color:#1e40af',
+                        'cancelled': 'background:#f1f5f9;color:#475569'
+                    } %}
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                        <td style="padding:10px 14px">
+                            <span style="{{ status_styles.get(b.status, '') }};display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700">{{ b.status }}</span>
+                        </td>
+                        <td style="padding:10px 14px;font-weight:600">{{ b.machine.name }}</td>
+                        <td style="padding:10px 14px;color:#475569">{{ b.start_time.strftime('%H:%M') }}</td>
+                        <td style="padding:10px 14px;color:#475569">{{ b.end_time.strftime('%H:%M') }}</td>
+                        <td style="padding:10px 14px">{{ b.applicant_name }}</td>
+                        <td style="padding:10px 14px;color:#64748b;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                            title="{{ b.purpose }}">{{ b.purpose }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% else %}
+        <p style="color:#64748b;font-size:14px">今日尚無預約。</p>
+        {% endif %}
     </main>
 </body>
 </html>

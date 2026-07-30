@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Xray | 我的預約</title>
+    <style>
+        :root {
+            --navy: #0f172a;
+            --blue: #2563eb;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --muted: #64748b;
+            --pending-bg: #fef3c7; --pending-text: #92400e; --pending-dot: #f59e0b;
+            --approved-bg: #d1fae5; --approved-text: #065f46; --approved-dot: #10b981;
+            --completed-bg: #dbeafe; --completed-text: #1e40af; --completed-dot: #3b82f6;
+            --cancelled-bg: #f1f5f9; --cancelled-text: #475569; --cancelled-dot: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px 40px; }
+        .header { background: var(--navy); color: #fff; border-radius: 18px; padding: 26px 28px;
+                  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 6px 0 0; color: rgba(255,255,255,.72); font-size: 15px; }
+        .nav { display: flex; gap: 16px; flex-wrap: wrap; }
+        .nav a { color: #93c5fd; text-decoration: none; font-weight: 700; font-size: 15px; }
+        .nav a:hover { color: #fff; }
+        .panel { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+                 margin-top: 22px; box-shadow: 0 6px 18px rgba(15,23,42,.04); }
+        .panel h2 { margin: 0 0 18px; font-size: 22px; color: #0b2450; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid var(--border); padding: 12px 10px; text-align: left; vertical-align: middle; }
+        th { font-size: 13px; color: var(--muted); font-weight: 700; }
+        td { font-size: 14px; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700;
+        }
+        .status-badge.pending   { background: var(--pending-bg);   color: var(--pending-text); }
+        .status-badge.approved  { background: var(--approved-bg);  color: var(--approved-text); }
+        .status-badge.completed { background: var(--completed-bg); color: var(--completed-text); }
+        .status-badge.cancelled { background: var(--cancelled-bg); color: var(--cancelled-text); }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .pending   .status-dot { background: var(--pending-dot); }
+        .approved  .status-dot { background: var(--approved-dot); }
+        .completed .status-dot { background: var(--completed-dot); }
+        .cancelled .status-dot { background: var(--cancelled-dot); }
+        .btn-link { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 8px;
+                    background: #eff6ff; color: #1d4ed8; text-decoration: none; font-weight: 700; font-size: 13px; }
+        .btn-link:hover { background: #dbeafe; }
+        .empty { color: var(--muted); padding: 14px 0; }
+        @media (max-width: 700px) { th:nth-child(3), td:nth-child(3) { display: none; } }
+    </style>
+</head>
+<body>
+<main class="container">
+    <section class="header">
+        <div>
+            <h1>我的預約 My Bookings</h1>
+            <p>Signed in as {{ current_user.username }}</p>
+        </div>
+        <nav class="nav">
+            <a href="/">首頁</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/calendar">行事曆 Calendar</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </section>
+
+    <section class="panel">
+        <h2>預約記錄 Booking Records</h2>
+        {% if bookings %}
+        <table>
+            <thead>
+                <tr>
+                    <th>狀態 Status</th>
+                    <th>機台 Machine</th>
+                    <th>開始 Start</th>
+                    <th>結束 End</th>
+                    <th>使用目的 Purpose</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td>
+                        <span class="status-badge {{ b.status }}">
+                            <span class="status-dot"></span>
+                            {{ b.status }}
+                        </span>
+                    </td>
+                    <td>{{ b.machine.name }}</td>
+                    <td>{{ b.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ b.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                        title="{{ b.purpose }}">{{ b.purpose }}</td>
+                    <td>
+                        <a class="btn-link" href="{{ url_for('web.view_booking', booking_id=b.id) }}">詳情</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">尚無預約記錄。<a href="/calendar">前往行事曆建立預約 →</a></p>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

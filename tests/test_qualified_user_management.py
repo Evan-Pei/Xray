@@ -196,3 +196,94 @@ def test_admin_can_book_for_another_qualified_user(client, app):
     data = response.get_json()
     assert data["user_id"] == target_user_id
     assert data["applicant_name"] == "qualified-target"
+
+
+# ---------------------------------------------------------------------------
+# Approval workflow
+# ---------------------------------------------------------------------------
+
+def test_non_admin_cannot_create_booking_with_approved_status(client, app):
+    user_id = _create_user(app, "regular-approver", "pw7", True)
+    _login(client, "regular-approver", "pw7")
+
+    response = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-08-01T09:00:00",
+            "end": "2026-08-01T10:00:00",
+            "machine_id": 1,
+            "purpose": "self approve attempt",
+            "status": "approved",
+        },
+    )
+    assert response.status_code == 403
+    assert b"only admin" in response.data
+
+
+def test_admin_can_create_booking_with_approved_status(client, app):
+    _login(client)
+
+    response = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-08-01T10:00:00",
+            "end": "2026-08-01T11:00:00",
+            "machine_id": 1,
+            "purpose": "admin approved",
+            "status": "approved",
+        },
+    )
+    assert response.status_code == 201
+    assert response.get_json()["status"] == "approved"
+
+
+def test_non_admin_cannot_update_booking_to_approved(client, app):
+    user_id = _create_user(app, "owns-booking", "pw8", True)
+    _login(client, "owns-booking", "pw8")
+
+    # Create a booking as a regular user (pending status)
+    create_resp = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-08-02T09:00:00",
+            "end": "2026-08-02T10:00:00",
+            "machine_id": 1,
+            "purpose": "to be approved",
+        },
+    )
+    assert create_resp.status_code == 201
+    booking_id = create_resp.get_json()["id"]
+
+    # Attempt to self-approve
+    update_resp = client.put(
+        f"/api/bookings/{booking_id}",
+        json={"status": "approved"},
+    )
+    assert update_resp.status_code == 403
+    assert b"only admin" in update_resp.data
+
+
+def test_admin_can_update_booking_to_approved(client, app):
+    user_id = _create_user(app, "user-for-admin-approve", "pw9", True)
+    _login(client)
+
+    create_resp = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-08-03T09:00:00",
+            "end": "2026-08-03T10:00:00",
+            "machine_id": 1,
+            "user_id": user_id,
+            "purpose": "pending approval",
+        },
+    )
+    assert create_resp.status_code == 201
+    booking_id = create_resp.get_json()["id"]
+
+    update_resp = client.put(
+        f"/api/bookings/{booking_id}",
+        json={"status": "approved"},
+    )
+    assert update_resp.status_code == 200
+    assert update_resp.get_json()["status"] == "approved"
+

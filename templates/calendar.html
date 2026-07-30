@@ -628,7 +628,9 @@
                     <label>狀態</label>
                     <select id="fStatus">
                         <option value="pending">待審 pending</option>
+                        {% if is_admin %}
                         <option value="approved">已批 approved</option>
+                        {% endif %}
                         <option value="completed">完成 completed</option>
                         <option value="cancelled">取消 cancelled</option>
                     </select>
@@ -666,6 +668,7 @@ const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
 const CURRENT_USER = {{ current_username | tojson }};
 const CURRENT_USER_ID = {{ current_user_id | tojson }};
+const IS_ADMIN = {{ is_admin | tojson }};
 const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
 
 let curYear  = {{ init_year }};

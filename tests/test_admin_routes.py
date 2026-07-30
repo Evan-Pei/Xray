@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
 from app import create_app
-from models import Machine, db
+from models import Machine, User, db
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
@@ -137,3 +137,57 @@ def test_machine_edit_id_conflict_shows_error(client, app):
         unchanged_machine = db.session.get(Machine, original_id)
         assert unchanged_machine is not None
         assert unchanged_machine.name == "X-Ray 1"
+
+
+# ---------------------------------------------------------------------------
+# Admin access control
+# ---------------------------------------------------------------------------
+
+def _create_regular_user(app, username="regular", pwd="pw123"):
+    with app.app_context():
+        user = User(username=username, is_qualified=True)
+        user.set_password(pwd)
+        db.session.add(user)
+        db.session.commit()
+
+
+def _login_as(client, username, password):
+    return client.post(
+        "/auth/login",
+        data={"username": username, "password": password},
+        follow_redirects=True,
+    )
+
+
+def test_non_admin_cannot_access_machine_list(client, app):
+    _create_regular_user(app)
+    _login_as(client, "regular", "pw123")
+    response = client.get("/admin/machines")
+    assert response.status_code == 403
+
+
+def test_non_admin_cannot_access_user_list(client, app):
+    _create_regular_user(app)
+    _login_as(client, "regular", "pw123")
+    response = client.get("/admin/users")
+    assert response.status_code == 403
+
+
+def test_unauthenticated_user_is_redirected_from_admin(client):
+    response = client.get("/admin/machines")
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+
+
+def test_admin_can_still_access_machine_list(client):
+    _login(client)
+    response = client.get("/admin/machines")
+    assert response.status_code == 200
+    assert b"Machine Management" in response.data
+
+
+def test_admin_can_still_access_user_list(client):
+    _login(client)
+    response = client.get("/admin/users")
+    assert response.status_code == 200
+    assert b"User Management" in response.data
