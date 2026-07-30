@@ -829,11 +829,20 @@ function invalidateCache(y, m) {
 function groupByDay(bookings, y, m) {
     const map = {};
     for (const b of bookings) {
-        const d = new Date(b.start);
-        if (d.getFullYear() === y && d.getMonth() + 1 === m) {
-            const day = d.getDate();
-            if (!map[day]) map[day] = [];
-            map[day].push(b);
+        const startDate = new Date(b.start);
+        const endDate   = new Date(b.end);
+
+        // Iterate through every calendar day the booking spans
+        const cur  = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const last = new Date(endDate.getFullYear(),   endDate.getMonth(),   endDate.getDate());
+
+        while (cur <= last) {
+            if (cur.getFullYear() === y && cur.getMonth() + 1 === m) {
+                const day = cur.getDate();
+                if (!map[day]) map[day] = [];
+                map[day].push(b);
+            }
+            cur.setDate(cur.getDate() + 1);
         }
     }
     return map;
