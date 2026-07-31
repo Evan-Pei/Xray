@@ -1,7 +1,6 @@
 import os
-import secrets
 
-from flask import Flask, current_app
+from flask import Flask
 
 from config import Config
 from models import Machine, User, db, login_manager
@@ -65,17 +64,8 @@ def _seed_admin_user():
             db.session.commit()
         return
 
-    # Create new admin user with password from environment variable
-    admin_password = os.environ.get("ADMIN_PASSWORD")
-    if not admin_password:
-        if current_app.config.get("TESTING", False):
-            admin_password = "admin123"
-        else:
-            admin_password = secrets.token_urlsafe(18)
-            current_app.logger.warning(
-                "ADMIN_PASSWORD is not set. Generated temporary admin password for local development: %s",
-                admin_password,
-            )
+    # Create new admin user with password from environment variable or default
+    admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
 
     user = User(username=admin_username, is_qualified=True)
     user.set_password(admin_password)
