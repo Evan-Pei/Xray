@@ -91,3 +91,19 @@ def test_calendar_shows_schedule_grid():
 
     assert b"Mon" in response.data
     assert b"X-Ray" in response.data
+
+
+def test_calendar_includes_fixed_height_styles():
+    app = create_test_app()
+
+    with app.test_client() as client:
+        response = client.get("/calendar")
+
+    assert response.status_code == 200
+    assert b".mini-cal {" in response.data
+    assert b"height: fit-content;" in response.data
+    assert b"max-height: 400px;" in response.data
+    assert b".cal-table td {" in response.data
+    assert b"height: 120px;" in response.data
+    assert b"max-height: 120px;" in response.data
+    assert b"overflow: hidden;" in response.data
