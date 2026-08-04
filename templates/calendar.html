@@ -174,6 +174,8 @@
             padding: 12px;
             height: 120px;
             max-height: 120px;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
             vertical-align: top;
             background: var(--white);
@@ -197,6 +199,15 @@
             font-size: 14px;
             margin-bottom: 8px;
             color: var(--text);
+            flex-shrink: 0;
+        }
+
+        /* ── Chips Container ── */
+        .cal-chips-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ── Chips (Booking Items) ── */
@@ -216,6 +227,7 @@
             text-overflow: ellipsis;
             border-left: 3px solid var(--pending-dot);
             transition: transform 0.1s;
+            flex-shrink: 0;
         }
         .chip:hover {
             transform: scale(1.02);
@@ -255,6 +267,7 @@
             color: var(--muted);
             padding: 4px 8px;
             cursor: pointer;
+            flex-shrink: 0;
         }
         .more-chip:hover {
             color: var(--blue);
@@ -651,7 +664,7 @@
 <div id="toast"></div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────
+// ── State ───────────────────────────────────────────────────────────────
 const TODAY_YEAR  = {{ today_year }};
 const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
@@ -881,8 +894,7 @@ async function renderMain(y, m) {
                 : "";
             return `<td class="${isToday ? 'today' : ''}" onclick="openNewBooking(${y}, ${m}, ${day}, event)">
                 <div class="cal-date">${day}</div>
-                ${chips}
-                ${more}
+                <div class="cal-chips-container">${chips}${more}</div>
             </td>`;
         }).join("")}</tr>
     `).join("");
@@ -1233,5 +1245,6 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", confirmDel
     await renderAll();
 })();
 </script>
+
 </body>
 </html>
