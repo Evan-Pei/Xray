@@ -173,10 +173,6 @@
             border: 1px solid var(--border);
             padding: 12px;
             height: 120px;
-            max-height: 120px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
             vertical-align: top;
             background: var(--white);
             cursor: pointer;
@@ -199,12 +195,11 @@
             font-size: 14px;
             margin-bottom: 8px;
             color: var(--text);
-            flex-shrink: 0;
         }
 
-        /* ── Chips Container ── */
+        /* ── Chips Container (Fixed Height) ── */
         .cal-chips-container {
-            flex: 1;
+            height: calc(120px - 12px - 14px - 8px - 12px);
             overflow: hidden;
             display: flex;
             flex-direction: column;
