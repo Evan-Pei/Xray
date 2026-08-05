@@ -160,6 +160,7 @@
         .cal-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
         .cal-table thead th {
             background: var(--bg2);
@@ -168,12 +169,14 @@
             font-weight: 600;
             font-size: 13px;
             color: var(--text);
+            width: calc(100% / 7);
         }
         .cal-table td {
             border: 1px solid var(--border);
             padding: 12px;
             height: 120px;
             max-height: 120px;
+            width: calc(100% / 7);
             overflow: hidden;
             vertical-align: top;
             background: var(--white);
@@ -661,7 +664,7 @@
 <div id="toast"></div>
 
 <script>
-// ── State ───────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────
 const TODAY_YEAR  = {{ today_year }};
 const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
@@ -975,12 +978,12 @@ function jumpToNext() {
     renderAll();
 }
 
-// ── Loading ────────────────────────────────────────────────────────────
+// ── Loading ───────────────────────────────────────────────────────────
 function showLoading(on) {
     document.getElementById("loadingOverlay").classList.toggle("show", on);
 }
 
-// ── Toast ──────────────────────────────────────────────────────────────
+// ── Toast ───────────────────────────────────────────────────────────
 let _toastTimer;
 function showToast(msg, type = "success") {
     const el = document.getElementById("toast");
@@ -1000,248 +1003,222 @@ function statusBadgeHTML(status) {
     </span>`;
 }
 
-// ── Booking Modal: New ─────────────────────────────────────────────────
-function openNewBooking(y, m, day, evt) {
-    if (evt) evt.stopPropagation();
-    editingId = null;
-
-    document.getElementById("bookingModalTitle").textContent = "新增預約";
-    document.getElementById("viewMode").style.display = "none";
-    document.getElementById("editMode").style.display = "block";
-
-    // Default date
-    const dateStr = `${y}-${pad(m)}-${pad(day)}`;
-    document.getElementById("fStartDate").value = dateStr;
-    document.getElementById("fEndDate").value   = dateStr;
-    document.getElementById("fStartTime").value = "09:00";
-    document.getElementById("fEndTime").value   = "10:00";
-    document.getElementById("fPurpose").value   = "";
-    document.getElementById("fNotes").value     = "";
-    document.getElementById("fStatus").value    = "pending";
-    if (machines.length) document.getElementById("fMachine").selectedIndex = 0;
-
-    setFooter("create");
-    document.getElementById("bookingOverlay").classList.add("open");
-    setTimeout(() => document.getElementById("fPurpose").focus(), 100);
-}
-
-// ── Booking Modal: View ────────────────────────────────────────────────
-function openViewBooking(id, evt) {
-    if (evt) evt.stopPropagation();
-    const key = monthKey(curYear, curMonth);
-    const allB = bookingsCache[key] || [];
-    // search across all cached months too
-    let booking = null;
-    for (const bArr of Object.values(bookingsCache)) {
-        booking = bArr.find(b => b.id === id);
-        if (booking) break;
-    }
-    if (!booking) { showToast("找不到預約", "error"); return; }
-
+// ── Modal: View/Edit Booking ─────────────────────────────────────────
+async function openViewBooking(id, event) {
+    event.stopPropagation();
+    const b = (await loadBookings(curYear, curMonth)).find(b => b.id === id);
+    if (!b) return;
     editingId = id;
-    document.getElementById("bookingModalTitle").textContent = "預約詳情";
+    document.getElementById("bookingModalTitle").textContent = `Booking Details`;
+    document.getElementById("dStatus").textContent = STATUS_LABEL[b.status] || b.status;
+    document.getElementById("dUser").textContent = b.applicant_name;
+    document.getElementById("dMachine").textContent = b.machine_name;
+    document.getElementById("dStart").textContent = fmtDatetime(b.start);
+    document.getElementById("dEnd").textContent = fmtDatetime(b.end);
+    document.getElementById("dPurpose").textContent = b.purpose || "—";
+    if (b.notes) {
+        document.getElementById("dNotesRow").style.display = "block";
+        document.getElementById("dNotes").textContent = b.notes;
+    } else {
+        document.getElementById("dNotesRow").style.display = "none";
+    }
     document.getElementById("viewMode").style.display = "block";
     document.getElementById("editMode").style.display = "none";
-
-    // fill detail view
-    document.getElementById("dStatus").innerHTML = statusBadgeHTML(booking.status);
-    document.getElementById("dStart").textContent = fmtDatetime(booking.start);
-    document.getElementById("dEnd").textContent   = fmtDatetime(booking.end);
-    document.getElementById("dUser").textContent  = booking.applicant_name;
-    document.getElementById("dMachine").textContent = booking.machine_name;
-    document.getElementById("dPurpose").textContent = booking.purpose;
-    const notesRow = document.getElementById("dNotesRow");
-    const title = (booking.title || "").trim();
-    if (title && title !== DEFAULT_TITLE) {
-        document.getElementById("dNotes").textContent = title;
-        notesRow.style.display = "";
-    } else {
-        notesRow.style.display = "none";
-    }
-
-    setFooter("view", booking.can_edit);
+    
+    const footer = document.getElementById("bookingModalFooter");
+    footer.innerHTML = `
+        <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
+        <button class="btn btn-primary" onclick="editBooking()">Edit</button>
+        <button class="btn btn-danger" onclick="showDeleteConfirm()">Delete</button>
+    `;
     document.getElementById("bookingOverlay").classList.add("open");
 }
 
-// ── Booking Modal: Edit ────────────────────────────────────────────────
-function switchToEdit() {
-    let booking = null;
-    for (const bArr of Object.values(bookingsCache)) {
-        booking = bArr.find(b => b.id === editingId);
-        if (booking) break;
-    }
-    if (!booking) return;
+async function editBooking() {
+    if (!editingId) return;
+    const b = (await loadBookings(curYear, curMonth)).find(b => b.id === editingId);
+    if (!b) return;
 
-    document.getElementById("bookingModalTitle").textContent = "編輯預約";
+    document.getElementById("fUser").value = b.applicant_id;
+    document.getElementById("fMachine").value = b.machine_id;
+    document.getElementById("fStartDate").value = isoToDateStr(b.start);
+    document.getElementById("fStartTime").value = isoToTimeStr(b.start);
+    document.getElementById("fEndDate").value = isoToDateStr(b.end);
+    document.getElementById("fEndTime").value = isoToTimeStr(b.end);
+    document.getElementById("fPurpose").value = b.purpose || "";
+    document.getElementById("fNotes").value = b.notes || "";
+    document.getElementById("fStatus").value = b.status;
+
     document.getElementById("viewMode").style.display = "none";
     document.getElementById("editMode").style.display = "block";
-
-    document.getElementById("fStartDate").value = isoToDateStr(booking.start);
-    document.getElementById("fEndDate").value   = isoToDateStr(booking.end);
-    document.getElementById("fStartTime").value = isoToTimeStr(booking.start);
-    document.getElementById("fEndTime").value   = isoToTimeStr(booking.end);
-    if (booking.user_id) {
-        document.getElementById("fUser").value = String(booking.user_id);
-    }
-    document.getElementById("fMachine").value   = booking.machine_id;
-    document.getElementById("fPurpose").value   = booking.purpose;
-    const title = (booking.title || "").trim();
-    document.getElementById("fNotes").value     = title === DEFAULT_TITLE ? "" : title;
-    document.getElementById("fStatus").value    = booking.status;
-
-    setFooter("edit");
+    
+    const footer = document.getElementById("bookingModalFooter");
+    footer.innerHTML = `
+        <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBooking()">Save</button>
+    `;
 }
 
-// ── Footer buttons ─────────────────────────────────────────────────────
-function setFooter(mode, canEdit) {
-    const f = document.getElementById("bookingModalFooter");
-    if (mode === "create") {
-        f.innerHTML = `
-            <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="submitBooking()">Create</button>
-        `;
-    } else if (mode === "view") {
-        f.innerHTML = `
-            <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
-            ${canEdit ? '<button class="btn btn-primary" onclick="switchToEdit()">Edit</button>' : ""}
-            ${canEdit ? '<button class="btn btn-danger" onclick="openDeleteConfirm()">Delete</button>' : ""}
-        `;
-    } else if (mode === "edit") {
-        f.innerHTML = `
-            <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="submitBooking()">Save</button>
-        `;
-    }
+function cancelEdit() {
+    editingId = null;
+    closeBookingModal();
 }
 
-async function submitBooking() {
+async function saveBooking() {
+    if (!editingId) return;
+    
+    const userId = document.getElementById("fUser").value;
+    const machineId = document.getElementById("fMachine").value;
     const startDate = document.getElementById("fStartDate").value;
     const startTime = document.getElementById("fStartTime").value;
-    const endDate   = document.getElementById("fEndDate").value;
-    const endTime   = document.getElementById("fEndTime").value;
-    const machineId = document.getElementById("fMachine").value;
-    const userId    = document.getElementById("fUser").value;
-    const purpose   = document.getElementById("fPurpose").value.trim();
-    const notes     = document.getElementById("fNotes").value.trim();
-    const status    = document.getElementById("fStatus").value;
+    const endDate = document.getElementById("fEndDate").value;
+    const endTime = document.getElementById("fEndTime").value;
+    const purpose = document.getElementById("fPurpose").value;
+    const notes = document.getElementById("fNotes").value;
+    const status = document.getElementById("fStatus").value;
 
-    if (!purpose) { showToast("請填寫使用目的", "error"); return; }
-    if (Number.isNaN(machineId) || machineId <= 0) { showToast("請選擇機台", "error"); return; }
+    if (!userId || !machineId || !startDate || !startTime || !endDate || !endTime || !purpose) {
+        showToast("Please fill in all required fields.", "error");
+        return;
+    }
 
     const start = `${startDate}T${startTime}:00`;
-    const end   = `${endDate}T${endTime}:00`;
-    if (new Date(start) >= new Date(end)) {
-        showToast("結束時間必須晚於開始時間", "error"); return;
-    }
+    const end = `${endDate}T${endTime}:00`;
 
-    const payload = {
-        start,
-        end,
-        user_id: userId,
-        machine_id: machineId,
-        purpose,
-        title: notes || DEFAULT_TITLE,
-        status,
-    };
-
-    showLoading(true);
     try {
-        if (editingId) {
-            await apiFetch(`/api/bookings/${editingId}`, {
-                method: "PUT",
-                body: JSON.stringify(payload),
-            });
-            showToast("預約已更新 ✓", "success");
-        } else {
-            await apiFetch("/api/bookings", {
-                method: "POST",
-                body: JSON.stringify(payload),
-            });
-            showToast("預約已建立 ✓", "success");
-        }
+        await apiFetch(`/api/bookings/${editingId}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                applicant_id: parseInt(userId),
+                machine_id: parseInt(machineId),
+                start,
+                end,
+                purpose,
+                notes,
+                status,
+            }),
+        });
+        showToast("Booking updated successfully.", "success");
+        invalidateCache(curYear, curMonth);
+        renderAll();
         closeBookingModal();
-        // invalidate cache for affected months
-        const startM = new Date(start).getMonth() + 1;
-        const startY = new Date(start).getFullYear();
-        const endM   = new Date(end).getMonth() + 1;
-        const endY   = new Date(end).getFullYear();
-        invalidateCache(startY, startM);
-        if (startY !== endY || startM !== endM) invalidateCache(endY, endM);
-        await renderAll();
     } catch (e) {
-        const msg = e.message;
-        if (msg.includes("conflict")) {
-            showToast("⚠️ 時間或機台衝突，請調整", "error");
-        } else {
-            showToast("操作失敗: " + msg, "error");
-        }
-    } finally {
-        showLoading(false);
+        showToast("Failed to update booking: " + e.message, "error");
     }
 }
 
-// ── Delete ─────────────────────────────────────────────────────────────
-function openDeleteConfirm() {
-    deleteTargetId = editingId;
-    document.getElementById("confirmOverlay").classList.add("open");
-}
-function closeConfirm() {
-    document.getElementById("confirmOverlay").classList.remove("open");
-    deleteTargetId = null;
-}
-
-async function confirmDelete() {
-    if (!deleteTargetId) return;
-    showLoading(true);
-    try {
-        await apiFetch(`/api/bookings/${deleteTargetId}`, { method: "DELETE" });
-        showToast("預約已刪除", "success");
-        closeConfirm();
-        closeBookingModal();
-        // find which month the booking was in and invalidate cache
-        for (const [key, arr] of Object.entries(bookingsCache)) {
-            if (arr.find(b => b.id === deleteTargetId)) {
-                delete bookingsCache[key];
-            }
-        }
-        await renderAll();
-    } catch (e) {
-        showToast("刪除失敗: " + e.message, "error");
-    } finally {
-        showLoading(false);
-    }
-}
-
-// ── Close overlays ─────────────────────────────────────────────────────
 function closeBookingModal() {
     document.getElementById("bookingOverlay").classList.remove("open");
+    editingId = null;
 }
 
-// Close overlays on backdrop click
-document.getElementById("bookingOverlay").addEventListener("click", e => {
-    if (e.target === document.getElementById("bookingOverlay")) closeBookingModal();
-});
-document.getElementById("confirmOverlay").addEventListener("click", e => {
-    if (e.target === document.getElementById("confirmOverlay")) closeConfirm();
+// ── Delete Confirmation ──────────────────────────────────────────────
+function showDeleteConfirm() {
+    document.getElementById("confirmOverlay").classList.add("open");
+}
+
+function closeConfirm() {
+    document.getElementById("confirmOverlay").classList.remove("open");
+}
+
+document.getElementById("confirmDeleteBtn").addEventListener("click", async () => {
+    if (!editingId) return;
+    try {
+        await apiFetch(`/api/bookings/${editingId}`, { method: "DELETE" });
+        showToast("Booking deleted successfully.", "success");
+        invalidateCache(curYear, curMonth);
+        renderAll();
+        closeConfirm();
+        closeBookingModal();
+    } catch (e) {
+        showToast("Failed to delete booking: " + e.message, "error");
+    }
 });
 
-// ── Wire buttons ───────────────────────────────────────────────────────
+// ── New Booking ────────────────────────────────────────────────────────
+async function openNewBooking(y, m, day, event) {
+    event.stopPropagation();
+    editingId = null;
+    
+    const date = new Date(y, m - 1, day);
+    const dateStr = date.toISOString().substring(0, 10);
+    
+    document.getElementById("bookingModalTitle").textContent = `New Booking`;
+    document.getElementById("fStartDate").value = dateStr;
+    document.getElementById("fStartTime").value = "09:00";
+    document.getElementById("fEndDate").value = dateStr;
+    document.getElementById("fEndTime").value = "10:00";
+    document.getElementById("fPurpose").value = "";
+    document.getElementById("fNotes").value = "";
+    document.getElementById("fStatus").value = "pending";
+    
+    document.getElementById("viewMode").style.display = "none";
+    document.getElementById("editMode").style.display = "block";
+    
+    const footer = document.getElementById("bookingModalFooter");
+    footer.innerHTML = `
+        <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createBooking(${y}, ${m}, ${day})">Create</button>
+    `;
+    document.getElementById("bookingOverlay").classList.add("open");
+}
+
+async function createBooking(y, m, day) {
+    const userId = document.getElementById("fUser").value;
+    const machineId = document.getElementById("fMachine").value;
+    const startDate = document.getElementById("fStartDate").value;
+    const startTime = document.getElementById("fStartTime").value;
+    const endDate = document.getElementById("fEndDate").value;
+    const endTime = document.getElementById("fEndTime").value;
+    const purpose = document.getElementById("fPurpose").value;
+    const notes = document.getElementById("fNotes").value;
+    const status = document.getElementById("fStatus").value;
+
+    if (!userId || !machineId || !startDate || !startTime || !endDate || !endTime || !purpose) {
+        showToast("Please fill in all required fields.", "error");
+        return;
+    }
+
+    const start = `${startDate}T${startTime}:00`;
+    const end = `${endDate}T${endTime}:00`;
+
+    try {
+        await apiFetch("/api/bookings", {
+            method: "POST",
+            body: JSON.stringify({
+                applicant_id: parseInt(userId),
+                machine_id: parseInt(machineId),
+                start,
+                end,
+                purpose,
+                notes,
+                status,
+            }),
+        });
+        showToast("Booking created successfully.", "success");
+        invalidateCache(y, m);
+        const [prevY, prevM] = addMonths(y, m, -1);
+        const [nextY, nextM] = addMonths(y, m, +1);
+        invalidateCache(prevY, prevM);
+        invalidateCache(nextY, nextM);
+        renderAll();
+        closeBookingModal();
+    } catch (e) {
+        showToast("Failed to create booking: " + e.message, "error");
+    }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
 document.getElementById("btnPrev").addEventListener("click", () => navigate(-1));
 document.getElementById("btnNext").addEventListener("click", () => navigate(+1));
 document.getElementById("btnToday").addEventListener("click", jumpToToday);
-document.getElementById("confirmDeleteBtn").addEventListener("click", confirmDelete);
 
-// ── Init ───────────────────────────────────────────────────────────────
 (async () => {
+    await loadMachines();
+    await loadQualifiedUsers();
     populateTimeSelects();
-    try {
-        await Promise.all([loadMachines(), loadQualifiedUsers()]);
-    } catch (e) {
-        showToast("載入資料失敗: " + e.message, "error");
-    }
-    await renderAll();
+    renderAll();
 })();
 </script>
-
 </body>
 </html>
