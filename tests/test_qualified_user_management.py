@@ -9,7 +9,7 @@ os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 from app import create_app
-from models import Booking, User, db
+from models import Booking, Machine, User, db
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
@@ -46,6 +46,14 @@ def _create_user(app, username, password, is_qualified):
         db.session.add(user)
         db.session.commit()
         return user.id
+
+
+def _set_machine_status(app, machine_id, status):
+    with app.app_context():
+        machine = db.session.get(Machine, machine_id)
+        assert machine is not None
+        machine.status = status
+        db.session.commit()
 
 
 def test_seed_admin_is_qualified(app):
@@ -139,6 +147,18 @@ def test_calendar_user_dropdown_shows_only_qualified_users(client, app):
     assert b"unqualified-ui" not in response.data
 
 
+def test_calendar_renders_machine_filter_ui(client):
+    _login(client)
+
+    response = client.get("/calendar")
+
+    assert response.status_code == 200
+    assert b'id="machineFilterSelect"' in response.data
+    assert b"All Machines" in response.data
+    assert b"cal_selected_machine_id" in response.data
+    assert b'id="machineStatusLegend"' in response.data
+
+
 def test_create_booking_rejects_unqualified_selected_user(client, app):
     target_user_id = _create_user(app, "not-qualified", "pw3", False)
     _login(client)
@@ -154,6 +174,24 @@ def test_create_booking_rejects_unqualified_selected_user(client, app):
         },
     )
     assert response.status_code == 403
+
+
+def test_create_booking_rejects_offline_machine(client, app):
+    _set_machine_status(app, 1, "offline")
+    _login(client)
+
+    response = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-07-30T09:00:00",
+            "end": "2026-07-30T10:00:00",
+            "machine_id": 1,
+            "purpose": "offline machine",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.get_json()["error"] == 'machine "X-Ray 1" is currently offline'
 
 
 def test_non_admin_cannot_book_for_another_user(client, app):
@@ -196,3 +234,39 @@ def test_admin_can_book_for_another_qualified_user(client, app):
     data = response.get_json()
     assert data["user_id"] == target_user_id
     assert data["applicant_name"] == "qualified-target"
+
+
+def test_update_booking_rejects_maintenance_machine(client, app):
+    _login(client)
+
+    create_response = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-07-30T12:00:00",
+            "end": "2026-07-30T13:00:00",
+            "machine_id": 1,
+            "purpose": "baseline booking",
+        },
+    )
+    assert create_response.status_code == 201
+    booking_id = create_response.get_json()["id"]
+
+    _set_machine_status(app, 2, "maintenance")
+
+    response = client.put(
+        f"/api/bookings/{booking_id}",
+        json={
+            "start": "2026-07-30T12:30:00",
+            "end": "2026-07-30T13:30:00",
+            "machine_id": 2,
+            "purpose": "move booking",
+        },
+    )
+
+    assert response.status_code == 409
+    assert response.get_json()["error"] == 'machine "X-Ray 2" is currently maintenance'
+
+    with app.app_context():
+        booking = db.session.get(Booking, booking_id)
+        assert booking is not None
+        assert booking.machine_id == 1

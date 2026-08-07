@@ -137,6 +137,71 @@
             gap: 16px;
             margin-bottom: 24px;
         }
+        .calendar-toolbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .calendar-filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 240px;
+        }
+        .calendar-filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .calendar-filter-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--white);
+        }
+        .calendar-filter-status {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .machine-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            display: inline-block;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+        .machine-status-dot.online { background: #22c55e; }
+        .machine-status-dot.offline { background: #ef4444; }
+        .machine-status-dot.maintenance { background: #f59e0b; }
+        .machine-status-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .machine-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: var(--bg2);
+            color: var(--text);
+            font-size: 12px;
+        }
+        .machine-status-pill.active {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
         .nav-btn {
             background: var(--blue);
             color: #fff;
@@ -215,8 +280,8 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            background: var(--pending-bg);
-            color: var(--pending-text);
+            background: var(--chip-bg, var(--pending-bg));
+            color: var(--chip-text, var(--pending-text));
             padding: 3px 6px;
             border-radius: 4px;
             font-size: 10px;
@@ -225,7 +290,7 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            border-left: 3px solid var(--pending-dot);
+            border-left: 3px solid var(--chip-border, var(--pending-dot));
             transition: transform 0.1s;
             flex-shrink: 0;
         }
@@ -233,20 +298,14 @@
             transform: scale(1.02);
         }
         .chip.approved {
-            background: var(--approved-bg);
-            color: var(--approved-text);
-            border-left-color: var(--approved-dot);
+            box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.25);
         }
         .chip.completed {
-            background: var(--completed-bg);
-            color: var(--completed-text);
-            border-left-color: var(--completed-dot);
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.25);
         }
         .chip.cancelled {
-            background: var(--cancelled-bg);
-            color: var(--cancelled-text);
-            border-left-color: var(--cancelled-dot);
             text-decoration: line-through;
+            opacity: 0.65;
         }
         .chip-dot {
             display: inline-block;
@@ -454,6 +513,18 @@
             resize: vertical;
             min-height: 80px;
         }
+        .form-hint {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .form-hint.error {
+            color: #b91c1c;
+        }
 
         .form-row {
             display: grid;
@@ -519,6 +590,10 @@
                 flex-wrap: wrap;
                 gap: 8px;
             }
+            .calendar-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
             #lastUpdatedText {
                 width: 100%;
                 text-align: center;
@@ -553,13 +628,23 @@
 
         <!-- Center: main calendar -->
         <div class="main-cal">
-            <div class="month-nav">
-                <button class="nav-btn" id="btnPrev" title="上個月">&#8249;</button>
-                <div class="month-title" id="monthTitle">—</div>
-                <button class="nav-btn" id="btnNext" title="下個月">&#8250;</button>
-                <button class="nav-btn" id="btnToday" title="回到今天" style="margin-left: 16px;">Today</button>
-                <button class="nav-btn" id="btnRefresh" title="重新整理" style="margin-left: 8px;">↻</button>
-                <span id="lastUpdatedText" style="font-size:12px;color:var(--muted);margin-left:12px;"></span>
+            <div class="calendar-toolbar">
+                <div class="month-nav">
+                    <button class="nav-btn" id="btnPrev" title="上個月">&#8249;</button>
+                    <div class="month-title" id="monthTitle">—</div>
+                    <button class="nav-btn" id="btnNext" title="下個月">&#8250;</button>
+                    <button class="nav-btn" id="btnToday" title="回到今天" style="margin-left: 16px;">Today</button>
+                    <button class="nav-btn" id="btnRefresh" title="重新整理" style="margin-left: 8px;">↻</button>
+                    <span id="lastUpdatedText" style="font-size:12px;color:var(--muted);margin-left:12px;"></span>
+                </div>
+                <div class="calendar-filter-group">
+                    <label class="calendar-filter-label" for="machineFilterSelect">Machine Filter</label>
+                    <select class="calendar-filter-select" id="machineFilterSelect">
+                        <option value="">All Machines</option>
+                    </select>
+                    <div class="calendar-filter-status" id="machineFilterStatus"></div>
+                    <div class="machine-status-legend" id="machineStatusLegend"></div>
+                </div>
             </div>
             <table class="cal-table" id="calTable">
                 <thead>
@@ -628,6 +713,7 @@
                 <div class="form-group">
                     <label>Machine</label>
                     <select id="fMachine"></select>
+                    <div class="form-hint" id="fMachineStatusNotice"></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -703,6 +789,7 @@ const TODAY_DAY   = {{ today_day }};
 const CURRENT_USER = {{ current_username | tojson }};
 const CURRENT_USER_ID = {{ current_user_id | tojson }};
 const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
+const MACHINE_STORAGE_KEY = "cal_selected_machine_id";
 
 // Restore month from localStorage or use server-provided init value
 const _savedYear  = parseInt(localStorage.getItem("cal_year")  || "0", 10);
@@ -734,6 +821,11 @@ const STATUS_COLORS = {
     completed: { bg: "#dbeafe", text: "#1e40af", dot: "#3b82f6" },
     cancelled: { bg: "#f1f5f9", text: "#475569", dot: "#94a3b8" },
 };
+const MACHINE_STATUS_LABELS = {
+    online: "Online",
+    offline: "Offline",
+    maintenance: "Maintenance",
+};
 const DEFAULT_TITLE = "機台使用申請";
 
 // ── Time options (15-min slots 07:00 – 22:00) ──────────────────────────
@@ -757,6 +849,146 @@ function populateTimeSelects() {
 
 // ── Utilities ──────────────────────────────────────────────────────────
 function pad(n) { return String(n).padStart(2, '0'); }
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function getMachineById(machineId) {
+    if (!machineId) return null;
+    return machines.find(m => String(m.id) === String(machineId)) || null;
+}
+
+function getMachineStatusLabel(status) {
+    return MACHINE_STATUS_LABELS[status] || status || "Unknown";
+}
+
+function getSelectedMachineId() {
+    const value = document.getElementById("machineFilterSelect")?.value || "";
+    return value ? parseInt(value, 10) : null;
+}
+
+function getPreferredBookableMachineId(preferredMachineId = null) {
+    const preferred = getMachineById(preferredMachineId);
+    if (preferred && preferred.status === "online") return String(preferred.id);
+    const firstOnline = machines.find(m => m.status === "online");
+    if (firstOnline) return String(firstOnline.id);
+    return machines.length ? String(machines[0].id) : "";
+}
+
+function isMachineBookable(machine) {
+    return !!machine && machine.status === "online";
+}
+
+function machineStatusDotHTML(status) {
+    return `<span class="machine-status-dot ${escapeHtml(status)}"></span>`;
+}
+
+function machineStatusLabelHTML(status) {
+    return `${machineStatusDotHTML(status)}${escapeHtml(getMachineStatusLabel(status))}`;
+}
+
+function renderMachineFilterStatus() {
+    const statusEl = document.getElementById("machineFilterStatus");
+    const selectedMachine = getMachineById(getSelectedMachineId());
+    if (!selectedMachine) {
+        statusEl.textContent = "Showing bookings for all machines";
+        return;
+    }
+    statusEl.innerHTML = `${machineStatusLabelHTML(selectedMachine.status)}${escapeHtml(selectedMachine.name)}`;
+}
+
+function renderMachineStatusLegend() {
+    const selectedMachineId = String(getSelectedMachineId() || "");
+    const legend = document.getElementById("machineStatusLegend");
+    legend.innerHTML = machines.map(machine => `
+        <span class="machine-status-pill ${selectedMachineId === String(machine.id) ? "active" : ""}">
+            ${machineStatusLabelHTML(machine.status)}
+            ${escapeHtml(machine.name)}
+        </span>
+    `).join("");
+}
+
+function renderMachineFilterOptions() {
+    const sel = document.getElementById("machineFilterSelect");
+    const savedMachineId = localStorage.getItem(MACHINE_STORAGE_KEY) || "";
+    sel.innerHTML = [
+        '<option value="">All Machines</option>',
+        ...machines.map(
+            m => `<option value="${m.id}">${escapeHtml(m.name)} (${escapeHtml(getMachineStatusLabel(m.status))})</option>`
+        ),
+    ].join("");
+    const matched = savedMachineId && getMachineById(savedMachineId);
+    sel.value = matched ? String(matched.id) : "";
+    renderMachineFilterStatus();
+    renderMachineStatusLegend();
+}
+
+function renderBookingMachineOptions(preferredMachineId = null) {
+    const sel = document.getElementById("fMachine");
+    sel.innerHTML = machines.map(
+        m => `<option value="${m.id}">${escapeHtml(m.name)} (${escapeHtml(getMachineStatusLabel(m.status))})</option>`
+    ).join("");
+    const targetId = getPreferredBookableMachineId(preferredMachineId);
+    if (targetId) sel.value = targetId;
+    updateBookingMachineStatusNotice();
+}
+
+function invalidateAllBookingsCache() {
+    bookingsCache = {};
+}
+
+function updateBookingMachineStatusNotice() {
+    const notice = document.getElementById("fMachineStatusNotice");
+    const machine = getMachineById(document.getElementById("fMachine").value);
+    const submitBtn = document.querySelector('#bookingModalFooter .btn-primary');
+
+    if (!machine) {
+        notice.className = "form-hint";
+        notice.textContent = "";
+        if (submitBtn) submitBtn.disabled = false;
+        return true;
+    }
+
+    if (!isMachineBookable(machine)) {
+        notice.className = "form-hint error";
+        notice.innerHTML = `${machineStatusLabelHTML(machine.status)}${escapeHtml(machine.name)} is unavailable for booking`;
+        if (submitBtn) submitBtn.disabled = true;
+        return false;
+    }
+
+    notice.className = "form-hint";
+    notice.innerHTML = `${machineStatusLabelHTML(machine.status)}${escapeHtml(machine.name)} is available for booking`;
+    if (submitBtn) submitBtn.disabled = false;
+    return true;
+}
+
+function requireBookableMachine(machineId) {
+    const machine = getMachineById(machineId);
+    if (!machine) {
+        showToast("Please select a machine.", "error");
+        return false;
+    }
+    if (!isMachineBookable(machine)) {
+        showToast(`${machine.name} is currently ${getMachineStatusLabel(machine.status)}.`, "error");
+        updateBookingMachineStatusNotice();
+        return false;
+    }
+    return true;
+}
+
+function getMachineChipColors(machineId) {
+    const hue = (Number(machineId || 0) * 137.508) % 360;
+    return {
+        bg: `hsla(${hue}, 85%, 92%, 1)`,
+        text: `hsl(${hue}, 65%, 28%)`,
+        border: `hsl(${hue}, 75%, 46%)`,
+    };
+}
 
 function fmtDatetime(isoStr) {
     if (!isoStr) return "—";
@@ -780,7 +1012,9 @@ function toLocalInputValue(isoStr) {
     return d.toISOString().substring(0, 16);
 }
 
-function monthKey(y, m) { return `${y}-${m}`; }
+function monthKey(y, m, machineId = null) {
+    return `${y}-${m}-${machineId || "all"}`;
+}
 
 function addMonths(y, m, delta) {
     let nm = m + delta;
@@ -813,9 +1047,8 @@ async function apiFetch(url, opts = {}) {
 
 async function loadMachines() {
     machines = await apiFetch("/api/machines");
-    const sel = document.getElementById("fMachine");
-    sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-    if (machines.length) sel.selectedIndex = 0;
+    renderMachineFilterOptions();
+    renderBookingMachineOptions(getSelectedMachineId());
 }
 
 function getDefaultQualifiedUser() {
@@ -852,8 +1085,8 @@ async function loadQualifiedUsers() {
  * Load bookings for a given month, with buffer to include cross-month bookings.
  * Extend the query range by 1 month before and after to catch bookings that span.
  */
-async function loadBookings(y, m) {
-    const key = monthKey(y, m);
+async function loadBookings(y, m, machineId = getSelectedMachineId()) {
+    const key = monthKey(y, m, machineId);
     const cached = bookingsCache[key];
     if (cached && (Date.now() - cached.ts < CACHE_TTL_MS)) return cached.data;
 
@@ -866,21 +1099,18 @@ async function loadBookings(y, m) {
     const endDay = daysInMonth(nextY, nextM);
     const end = `${nextY}-${pad(nextM)}-${pad(endDay)}T23:59:59`;
 
-    const data = await apiFetch(`/api/bookings?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    const machineQuery = machineId ? `&machine_id=${encodeURIComponent(machineId)}` : "";
+    const data = await apiFetch(`/api/bookings?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}${machineQuery}`);
     bookingsCache[key] = { data, ts: Date.now() };
     return data;
 }
 
 function invalidateCache(y, m) {
-    delete bookingsCache[monthKey(y, m)];
+    delete bookingsCache[monthKey(y, m, getSelectedMachineId())];
 }
 
 function invalidateCacheWithNeighbors(y, m) {
-    invalidateCache(y, m);
-    const [prevY, prevM] = addMonths(y, m, -1);
-    const [nextY, nextM] = addMonths(y, m, +1);
-    invalidateCache(prevY, prevM);
-    invalidateCache(nextY, nextM);
+    invalidateAllBookingsCache();
 }
 
 // ── Calendar rendering ────────────────────────────────────────────────
@@ -916,9 +1146,10 @@ function chipHTML(b) {
     const machine = machines.find(m => m.id === b.machine_id);
     const machineName = machine ? machine.name : b.machine_name || "";
     const label = `${timeStr} ${b.applicant_name} · ${machineName}`;
-    return `<div class="chip ${b.status}" data-id="${b.id}" onclick="openViewBooking(${b.id},event)">
+    const colors = getMachineChipColors(b.machine_id);
+    return `<div class="chip ${escapeHtml(b.status)}" data-id="${b.id}" style="--chip-bg:${colors.bg};--chip-text:${colors.text};--chip-border:${colors.border}" onclick="openViewBooking(${b.id},event)">
         <span class="chip-dot"></span>
-        <span class="chip-text" title="${label}">${label}</span>
+        <span class="chip-text" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
     </div>`;
 }
 
@@ -1103,7 +1334,8 @@ async function editBooking() {
     if (!b) return;
 
     document.getElementById("fUser").value = b.user_id;
-    document.getElementById("fMachine").value = b.machine_id;
+    renderBookingMachineOptions(b.machine_id);
+    document.getElementById("fMachine").value = String(b.machine_id);
     document.getElementById("fStartDate").value = isoToDateStr(b.start);
     document.getElementById("fStartTime").value = isoToTimeStr(b.start);
     document.getElementById("fEndDate").value = isoToDateStr(b.end);
@@ -1120,6 +1352,7 @@ async function editBooking() {
         <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
         <button class="btn btn-primary" onclick="saveBooking()">Save</button>
     `;
+    updateBookingMachineStatusNotice();
 }
 
 function cancelEdit() {
@@ -1144,6 +1377,7 @@ async function saveBooking() {
         showToast("Please fill in all required fields.", "error");
         return;
     }
+    if (!requireBookableMachine(machineId)) return;
 
     const start = `${startDate}T${startTime}:00`;
     const end = `${endDate}T${endTime}:00`;
@@ -1202,6 +1436,8 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
 async function openNewBooking(y, m, day, event) {
     event.stopPropagation();
     editingId = null;
+    const filteredMachineId = getSelectedMachineId();
+    if (filteredMachineId && !requireBookableMachine(filteredMachineId)) return;
     
     const date = new Date(y, m - 1, day);
     const dateStr = date.toISOString().substring(0, 10);
@@ -1214,6 +1450,7 @@ async function openNewBooking(y, m, day, event) {
     document.getElementById("fPurpose").value = "";
     document.getElementById("fNotes").value = "";
     document.getElementById("fStatus").value = "pending";
+    renderBookingMachineOptions(filteredMachineId);
     
     document.getElementById("viewMode").style.display = "none";
     document.getElementById("editMode").style.display = "block";
@@ -1223,6 +1460,7 @@ async function openNewBooking(y, m, day, event) {
         <button class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
         <button class="btn btn-primary" onclick="createBooking(${y}, ${m}, ${day})">Create</button>
     `;
+    updateBookingMachineStatusNotice();
     document.getElementById("bookingOverlay").classList.add("open");
 }
 
@@ -1241,6 +1479,7 @@ async function createBooking(y, m, day) {
         showToast("Please fill in all required fields.", "error");
         return;
     }
+    if (!requireBookableMachine(machineId)) return;
 
     const start = `${startDate}T${startTime}:00`;
     const end = `${endDate}T${endTime}:00`;
@@ -1272,13 +1511,23 @@ document.getElementById("btnPrev").addEventListener("click", () => navigate(-1))
 document.getElementById("btnNext").addEventListener("click", () => navigate(+1));
 document.getElementById("btnToday").addEventListener("click", jumpToToday);
 document.getElementById("btnRefresh").addEventListener("click", () => {
-    invalidateCacheWithNeighbors(curYear, curMonth);
+    invalidateAllBookingsCache();
     renderAll();
 });
 
 // Persist user selection changes (registered once)
 document.getElementById("fUser").addEventListener("change", () => {
     localStorage.setItem("cal_selected_user_id", document.getElementById("fUser").value);
+});
+document.getElementById("fMachine").addEventListener("change", updateBookingMachineStatusNotice);
+document.getElementById("machineFilterSelect").addEventListener("change", () => {
+    const selectedMachineId = document.getElementById("machineFilterSelect").value;
+    localStorage.setItem(MACHINE_STORAGE_KEY, selectedMachineId);
+    renderMachineFilterStatus();
+    renderMachineStatusLegend();
+    renderBookingMachineOptions(selectedMachineId);
+    invalidateAllBookingsCache();
+    renderAll();
 });
 
 // Polling: start after initial load completes (see IIFE below)
@@ -1287,7 +1536,7 @@ let _pollTimer = null;
 function startPolling() {
     if (_pollTimer) clearInterval(_pollTimer);
     _pollTimer = setInterval(() => {
-        invalidateCacheWithNeighbors(curYear, curMonth);
+        invalidateAllBookingsCache();
         renderAll(true);
     }, 30_000);
 }
@@ -1295,7 +1544,7 @@ function startPolling() {
 // Refresh immediately when page becomes visible again
 document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
-        invalidateCacheWithNeighbors(curYear, curMonth);
+        invalidateAllBookingsCache();
         renderAll(true);
         startPolling();
     }
