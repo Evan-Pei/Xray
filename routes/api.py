@@ -4,11 +4,24 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import and_
 
-from models import Booking, BookingHistory, MACHINE_STATUS_ONLINE, Machine, User, db
+from models import (
+    Booking,
+    BookingHistory,
+    MACHINE_STATUS_MAINTENANCE,
+    MACHINE_STATUS_OFFLINE,
+    MACHINE_STATUS_ONLINE,
+    Machine,
+    User,
+    db,
+)
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 ALLOWED_STATUSES = {"pending", "approved", "completed", "cancelled"}
+MACHINE_STATUS_DESCRIPTIONS = {
+    MACHINE_STATUS_OFFLINE: "offline",
+    MACHINE_STATUS_MAINTENANCE: "under maintenance",
+}
 
 
 def _utc_now():
@@ -45,8 +58,11 @@ def _record_history(booking, action):
 
 def _require_online_machine(machine):
     if machine.status != MACHINE_STATUS_ONLINE:
+        status_description = MACHINE_STATUS_DESCRIPTIONS.get(
+            machine.status, machine.status.replace("_", " ")
+        )
         return (
-            jsonify({"error": f'machine "{machine.name}" is currently {machine.status}'}),
+            jsonify({"error": f'machine "{machine.name}" is currently {status_description}'}),
             409,
         )
     return None

@@ -52,8 +52,17 @@ def _set_machine_status(app, machine_id, status):
     with app.app_context():
         machine = db.session.get(Machine, machine_id)
         assert machine is not None
+        previous_status = machine.status
         machine.status = status
         db.session.commit()
+        return previous_status
+
+
+def _get_machine(app, name):
+    with app.app_context():
+        machine = Machine.query.filter_by(name=name).first()
+        assert machine is not None
+        return {"id": machine.id, "name": machine.name, "status": machine.status}
 
 
 def test_seed_admin_is_qualified(app):
@@ -177,21 +186,25 @@ def test_create_booking_rejects_unqualified_selected_user(client, app):
 
 
 def test_create_booking_rejects_offline_machine(client, app):
-    _set_machine_status(app, 1, "offline")
-    _login(client)
+    machine = _get_machine(app, "X-Ray 1")
+    previous_status = _set_machine_status(app, machine["id"], "offline")
+    try:
+        _login(client)
 
-    response = client.post(
-        "/api/bookings",
-        json={
-            "start": "2026-07-30T09:00:00",
-            "end": "2026-07-30T10:00:00",
-            "machine_id": 1,
-            "purpose": "offline machine",
-        },
-    )
+        response = client.post(
+            "/api/bookings",
+            json={
+                "start": "2026-07-30T09:00:00",
+                "end": "2026-07-30T10:00:00",
+                "machine_id": machine["id"],
+                "purpose": "offline machine",
+            },
+        )
 
-    assert response.status_code == 409
-    assert response.get_json()["error"] == 'machine "X-Ray 1" is currently offline'
+        assert response.status_code == 409
+        assert response.get_json()["error"] == f'machine "{machine["name"]}" is currently offline'
+    finally:
+        _set_machine_status(app, machine["id"], previous_status)
 
 
 def test_non_admin_cannot_book_for_another_user(client, app):
@@ -238,35 +251,39 @@ def test_admin_can_book_for_another_qualified_user(client, app):
 
 def test_update_booking_rejects_maintenance_machine(client, app):
     _login(client)
+    source_machine = _get_machine(app, "X-Ray 1")
+    target_machine = _get_machine(app, "X-Ray 2")
 
     create_response = client.post(
         "/api/bookings",
         json={
             "start": "2026-07-30T12:00:00",
             "end": "2026-07-30T13:00:00",
-            "machine_id": 1,
+            "machine_id": source_machine["id"],
             "purpose": "baseline booking",
         },
     )
     assert create_response.status_code == 201
     booking_id = create_response.get_json()["id"]
 
-    _set_machine_status(app, 2, "maintenance")
+    previous_status = _set_machine_status(app, target_machine["id"], "maintenance")
+    try:
+        response = client.put(
+            f"/api/bookings/{booking_id}",
+            json={
+                "start": "2026-07-30T12:30:00",
+                "end": "2026-07-30T13:30:00",
+                "machine_id": target_machine["id"],
+                "purpose": "move booking",
+            },
+        )
 
-    response = client.put(
-        f"/api/bookings/{booking_id}",
-        json={
-            "start": "2026-07-30T12:30:00",
-            "end": "2026-07-30T13:30:00",
-            "machine_id": 2,
-            "purpose": "move booking",
-        },
-    )
+        assert response.status_code == 409
+        assert response.get_json()["error"] == f'machine "{target_machine["name"]}" is currently under maintenance'
 
-    assert response.status_code == 409
-    assert response.get_json()["error"] == 'machine "X-Ray 2" is currently maintenance'
-
-    with app.app_context():
-        booking = db.session.get(Booking, booking_id)
-        assert booking is not None
-        assert booking.machine_id == 1
+        with app.app_context():
+            booking = db.session.get(Booking, booking_id)
+            assert booking is not None
+            assert booking.machine_id == source_machine["id"]
+    finally:
+        _set_machine_status(app, target_machine["id"], previous_status)

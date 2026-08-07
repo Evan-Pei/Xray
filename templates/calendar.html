@@ -304,6 +304,9 @@
             box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.25);
         }
         .chip.cancelled {
+            background: var(--cancelled-bg);
+            color: var(--cancelled-text);
+            border-left-color: var(--cancelled-dot);
             text-decoration: line-through;
             opacity: 0.65;
         }
@@ -816,10 +819,10 @@ const STATUS_LABEL = {
     cancelled: "取消",
 };
 const STATUS_COLORS = {
-    pending:   { bg: "#fef3c7", text: "#92400e", dot: "#f59e0b" },
-    approved:  { bg: "#d1fae5", text: "#065f46", dot: "#10b981" },
-    completed: { bg: "#dbeafe", text: "#1e40af", dot: "#3b82f6" },
-    cancelled: { bg: "#f1f5f9", text: "#475569", dot: "#94a3b8" },
+    pending:   { bg: "#fef3c7", text: "#92400e", dot: "#f59e0b", border: "#f59e0b" },
+    approved:  { bg: "#d1fae5", text: "#065f46", dot: "#10b981", border: "#10b981" },
+    completed: { bg: "#dbeafe", text: "#1e40af", dot: "#3b82f6", border: "#3b82f6" },
+    cancelled: { bg: "#f1f5f9", text: "#475569", dot: "#94a3b8", border: "#94a3b8" },
 };
 const MACHINE_STATUS_LABELS = {
     online: "Online",
@@ -981,7 +984,21 @@ function requireBookableMachine(machineId) {
     return true;
 }
 
+function safeCssColor(value, fallback = "#94a3b8") {
+    const normalized = String(value || "").trim();
+    if (/^#[0-9a-fA-F]{3,8}$/.test(normalized)) return normalized;
+    if (/^hsla?\([\d.%\s,]+\)$/.test(normalized)) return normalized;
+    return fallback;
+}
+
 function getMachineChipColors(machineId) {
+    if (machineId === null || machineId === undefined || machineId === "") {
+        return {
+            bg: "#f1f5f9",
+            text: "#475569",
+            border: "#94a3b8",
+        };
+    }
     const hue = (Number(machineId || 0) * 137.508) % 360;
     return {
         bg: `hsla(${hue}, 85%, 92%, 1)`,
@@ -1105,14 +1122,6 @@ async function loadBookings(y, m, machineId = getSelectedMachineId()) {
     return data;
 }
 
-function invalidateCache(y, m) {
-    delete bookingsCache[monthKey(y, m, getSelectedMachineId())];
-}
-
-function invalidateCacheWithNeighbors(y, m) {
-    invalidateAllBookingsCache();
-}
-
 // ── Calendar rendering ────────────────────────────────────────────────
 function groupByDay(bookings, y, m) {
     const map = {};
@@ -1146,8 +1155,11 @@ function chipHTML(b) {
     const machine = machines.find(m => m.id === b.machine_id);
     const machineName = machine ? machine.name : b.machine_name || "";
     const label = `${timeStr} ${b.applicant_name} · ${machineName}`;
-    const colors = getMachineChipColors(b.machine_id);
-    return `<div class="chip ${escapeHtml(b.status)}" data-id="${b.id}" style="--chip-bg:${colors.bg};--chip-text:${colors.text};--chip-border:${colors.border}" onclick="openViewBooking(${b.id},event)">
+    const colors = b.status === "cancelled" ? STATUS_COLORS.cancelled : getMachineChipColors(b.machine_id);
+    const borderColor = safeCssColor(colors.border ?? colors.dot);
+    const backgroundColor = safeCssColor(colors.bg, STATUS_COLORS.pending.bg);
+    const textColor = safeCssColor(colors.text, STATUS_COLORS.pending.text);
+    return `<div class="chip ${escapeHtml(b.status)}" data-id="${b.id}" style="--chip-bg:${backgroundColor};--chip-text:${textColor};--chip-border:${borderColor}" onclick="openViewBooking(${b.id},event)">
         <span class="chip-dot"></span>
         <span class="chip-text" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
     </div>`;
@@ -1396,7 +1408,7 @@ async function saveBooking() {
             }),
         });
         showToast("Booking updated successfully.", "success");
-        invalidateCacheWithNeighbors(curYear, curMonth);
+        invalidateAllBookingsCache();
         renderAll();
         closeBookingModal();
     } catch (e) {
@@ -1423,7 +1435,7 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
     try {
         await apiFetch(`/api/bookings/${editingId}`, { method: "DELETE" });
         showToast("Booking deleted successfully.", "success");
-        invalidateCacheWithNeighbors(curYear, curMonth);
+        invalidateAllBookingsCache();
         renderAll();
         closeConfirm();
         closeBookingModal();
@@ -1437,7 +1449,6 @@ async function openNewBooking(y, m, day, event) {
     event.stopPropagation();
     editingId = null;
     const filteredMachineId = getSelectedMachineId();
-    if (filteredMachineId && !requireBookableMachine(filteredMachineId)) return;
     
     const date = new Date(y, m - 1, day);
     const dateStr = date.toISOString().substring(0, 10);
@@ -1498,7 +1509,7 @@ async function createBooking(y, m, day) {
             }),
         });
         showToast("Booking created successfully.", "success");
-        invalidateCacheWithNeighbors(y, m);
+        invalidateAllBookingsCache();
         renderAll();
         closeBookingModal();
     } catch (e) {
