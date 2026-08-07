@@ -214,13 +214,13 @@
         .chip {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: var(--pending-bg);
             color: var(--pending-text);
-            padding: 6px 8px;
+            padding: 3px 6px;
             border-radius: 4px;
-            font-size: 11px;
-            margin-bottom: 4px;
+            font-size: 10px;
+            margin-bottom: 3px;
             cursor: pointer;
             overflow: hidden;
             white-space: nowrap;
@@ -494,6 +494,36 @@
                 display: none;
             }
         }
+
+        @media (max-width: 640px) {
+            .cal-table td {
+                padding: 4px;
+                height: 90px;
+                max-height: 90px;
+            }
+            .cal-date {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+            .chip {
+                font-size: 9px;
+                padding: 2px 4px;
+                gap: 3px;
+                margin-bottom: 2px;
+            }
+            .chip-dot {
+                width: 5px;
+                height: 5px;
+            }
+            .month-nav {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            #lastUpdatedText {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -528,6 +558,8 @@
                 <div class="month-title" id="monthTitle">—</div>
                 <button class="nav-btn" id="btnNext" title="下個月">&#8250;</button>
                 <button class="nav-btn" id="btnToday" title="回到今天" style="margin-left: 16px;">Today</button>
+                <button class="nav-btn" id="btnRefresh" title="重新整理" style="margin-left: 8px;">↻</button>
+                <span id="lastUpdatedText" style="font-size:12px;color:var(--muted);margin-left:12px;"></span>
             </div>
             <table class="cal-table" id="calTable">
                 <thead>
@@ -672,13 +704,19 @@ const CURRENT_USER = {{ current_username | tojson }};
 const CURRENT_USER_ID = {{ current_user_id | tojson }};
 const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
 
-let curYear  = {{ init_year }};
-let curMonth = {{ init_month }};
+// Restore month from localStorage or use server-provided init value
+const _savedYear  = parseInt(localStorage.getItem("cal_year")  || "0", 10);
+const _savedMonth = parseInt(localStorage.getItem("cal_month") || "0", 10);
+let curYear  = (_savedYear  >= 2000 && _savedMonth >= 1 && _savedMonth <= 12) ? _savedYear  : {{ init_year }};
+let curMonth = (_savedYear  >= 2000 && _savedMonth >= 1 && _savedMonth <= 12) ? _savedMonth : {{ init_month }};
+
 let machines  = [];
 let qualifiedUsers = [];
-let bookingsCache = {};   // key: "YYYY-M" → array of booking objects
+let bookingsCache = {};   // key: "YYYY-M" → { data: [], ts: timestamp }
 let editingId = null;     // booking id when editing
 let deleteTargetId = null;
+let lastUpdated = null;   // timestamp of last successful data fetch
+const CACHE_TTL_MS = 30_000; // 30 seconds
 
 const MONTH_NAMES_ZH = [
     "", "一月","二月","三月","四月","五月","六月",
@@ -788,9 +826,15 @@ function getDefaultQualifiedUser() {
 function renderUserOptions() {
     const sel = document.getElementById("fUser");
     sel.innerHTML = qualifiedUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
-    const selectedUser = getDefaultQualifiedUser();
-    if (selectedUser) {
-        sel.value = String(selectedUser.id);
+    // Restore saved user from localStorage, else fall back to current user
+    const savedUserId = localStorage.getItem("cal_selected_user_id");
+    const targetId = savedUserId || String(CURRENT_USER_ID);
+    const found = qualifiedUsers.find(u => String(u.id) === targetId);
+    if (found) {
+        sel.value = String(found.id);
+    } else {
+        const def = getDefaultQualifiedUser();
+        if (def) sel.value = String(def.id);
     }
 }
 
@@ -810,7 +854,8 @@ async function loadQualifiedUsers() {
  */
 async function loadBookings(y, m) {
     const key = monthKey(y, m);
-    if (bookingsCache[key]) return bookingsCache[key];
+    const cached = bookingsCache[key];
+    if (cached && (Date.now() - cached.ts < CACHE_TTL_MS)) return cached.data;
 
     // Extend range: load data from previous month to next month
     // to ensure we capture all bookings that touch this calendar month
@@ -822,12 +867,20 @@ async function loadBookings(y, m) {
     const end = `${nextY}-${pad(nextM)}-${pad(endDay)}T23:59:59`;
 
     const data = await apiFetch(`/api/bookings?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-    bookingsCache[key] = data;
+    bookingsCache[key] = { data, ts: Date.now() };
     return data;
 }
 
 function invalidateCache(y, m) {
     delete bookingsCache[monthKey(y, m)];
+}
+
+function invalidateCacheWithNeighbors(y, m) {
+    invalidateCache(y, m);
+    const [prevY, prevM] = addMonths(y, m, -1);
+    const [nextY, nextM] = addMonths(y, m, +1);
+    invalidateCache(prevY, prevM);
+    invalidateCache(nextY, nextM);
 }
 
 // ── Calendar rendering ────────────────────────────────────────────────
@@ -927,8 +980,8 @@ function renderMini(y, m, titleEl, tableEl, daysWithBookings) {
     `;
 }
 
-async function renderAll() {
-    showLoading(true);
+async function renderAll(silent = false) {
+    if (!silent) showLoading(true);
     try {
         await renderMain(curYear, curMonth);
 
@@ -955,7 +1008,11 @@ async function renderAll() {
             document.getElementById("miniNextTable"),
             nextDays);
     } finally {
-        showLoading(false);
+        if (!silent) showLoading(false);
+        lastUpdated = new Date();
+        updateLastUpdatedUI();
+        localStorage.setItem("cal_year",  String(curYear));
+        localStorage.setItem("cal_month", String(curMonth));
     }
 }
 
@@ -976,6 +1033,12 @@ function jumpToPrev() {
 function jumpToNext() {
     [curYear, curMonth] = addMonths(curYear, curMonth, +1);
     renderAll();
+}
+
+function updateLastUpdatedUI() {
+    const el = document.getElementById("lastUpdatedText");
+    if (!el || !lastUpdated) return;
+    el.textContent = `最後更新：${lastUpdated.toLocaleTimeString('zh-TW')}`;
 }
 
 // ── Loading ───────────────────────────────────────────────────────────
@@ -1039,7 +1102,7 @@ async function editBooking() {
     const b = (await loadBookings(curYear, curMonth)).find(b => b.id === editingId);
     if (!b) return;
 
-    document.getElementById("fUser").value = b.applicant_id;
+    document.getElementById("fUser").value = b.user_id;
     document.getElementById("fMachine").value = b.machine_id;
     document.getElementById("fStartDate").value = isoToDateStr(b.start);
     document.getElementById("fStartTime").value = isoToTimeStr(b.start);
@@ -1089,7 +1152,7 @@ async function saveBooking() {
         await apiFetch(`/api/bookings/${editingId}`, {
             method: "PUT",
             body: JSON.stringify({
-                applicant_id: parseInt(userId),
+                user_id: parseInt(userId),
                 machine_id: parseInt(machineId),
                 start,
                 end,
@@ -1099,7 +1162,7 @@ async function saveBooking() {
             }),
         });
         showToast("Booking updated successfully.", "success");
-        invalidateCache(curYear, curMonth);
+        invalidateCacheWithNeighbors(curYear, curMonth);
         renderAll();
         closeBookingModal();
     } catch (e) {
@@ -1126,7 +1189,7 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
     try {
         await apiFetch(`/api/bookings/${editingId}`, { method: "DELETE" });
         showToast("Booking deleted successfully.", "success");
-        invalidateCache(curYear, curMonth);
+        invalidateCacheWithNeighbors(curYear, curMonth);
         renderAll();
         closeConfirm();
         closeBookingModal();
@@ -1186,7 +1249,7 @@ async function createBooking(y, m, day) {
         await apiFetch("/api/bookings", {
             method: "POST",
             body: JSON.stringify({
-                applicant_id: parseInt(userId),
+                user_id: parseInt(userId),
                 machine_id: parseInt(machineId),
                 start,
                 end,
@@ -1196,11 +1259,7 @@ async function createBooking(y, m, day) {
             }),
         });
         showToast("Booking created successfully.", "success");
-        invalidateCache(y, m);
-        const [prevY, prevM] = addMonths(y, m, -1);
-        const [nextY, nextM] = addMonths(y, m, +1);
-        invalidateCache(prevY, prevM);
-        invalidateCache(nextY, nextM);
+        invalidateCacheWithNeighbors(y, m);
         renderAll();
         closeBookingModal();
     } catch (e) {
@@ -1212,12 +1271,42 @@ async function createBooking(y, m, day) {
 document.getElementById("btnPrev").addEventListener("click", () => navigate(-1));
 document.getElementById("btnNext").addEventListener("click", () => navigate(+1));
 document.getElementById("btnToday").addEventListener("click", jumpToToday);
+document.getElementById("btnRefresh").addEventListener("click", () => {
+    invalidateCacheWithNeighbors(curYear, curMonth);
+    renderAll();
+});
+
+// Persist user selection changes (registered once)
+document.getElementById("fUser").addEventListener("change", () => {
+    localStorage.setItem("cal_selected_user_id", document.getElementById("fUser").value);
+});
+
+// Polling: start after initial load completes (see IIFE below)
+let _pollTimer = null;
+
+function startPolling() {
+    if (_pollTimer) clearInterval(_pollTimer);
+    _pollTimer = setInterval(() => {
+        invalidateCacheWithNeighbors(curYear, curMonth);
+        renderAll(true);
+    }, 30_000);
+}
+
+// Refresh immediately when page becomes visible again
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        invalidateCacheWithNeighbors(curYear, curMonth);
+        renderAll(true);
+        startPolling();
+    }
+});
 
 (async () => {
     await loadMachines();
     await loadQualifiedUsers();
     populateTimeSelects();
-    renderAll();
+    await renderAll();
+    startPolling();
 })();
 </script>
 </body>
