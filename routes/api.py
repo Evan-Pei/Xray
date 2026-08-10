@@ -4,11 +4,24 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from sqlalchemy import and_
 
-from models import Booking, BookingHistory, Machine, User, db
+from models import (
+    Booking,
+    BookingHistory,
+    MACHINE_STATUS_MAINTENANCE,
+    MACHINE_STATUS_OFFLINE,
+    MACHINE_STATUS_ONLINE,
+    Machine,
+    User,
+    db,
+)
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 ALLOWED_STATUSES = {"pending", "approved", "completed", "cancelled"}
+MACHINE_STATUS_DESCRIPTIONS = {
+    MACHINE_STATUS_OFFLINE: "offline",
+    MACHINE_STATUS_MAINTENANCE: "under maintenance",
+}
 
 
 def _utc_now():
@@ -41,6 +54,18 @@ def _booking_conflict(machine_id, start_time, end_time, booking_id=None):
 
 def _record_history(booking, action):
     db.session.add(BookingHistory(booking=booking, action=action, snapshot=booking.snapshot()))
+
+
+def _require_online_machine(machine):
+    if machine.status != MACHINE_STATUS_ONLINE:
+        status_description = MACHINE_STATUS_DESCRIPTIONS.get(
+            machine.status, machine.status.replace("_", " ")
+        )
+        return (
+            jsonify({"error": f'machine "{machine.name}" is currently {status_description}'}),
+            409,
+        )
+    return None
 
 
 @api_bp.get("/health")
@@ -112,6 +137,9 @@ def create_booking():
     machine = db.session.get(Machine, machine_id)
     if not machine:
         return jsonify({"error": "machine not found"}), 404
+    machine_status_error = _require_online_machine(machine)
+    if machine_status_error:
+        return machine_status_error
 
     booking_user = db.session.get(User, user_id)
     if not booking_user:
@@ -173,6 +201,9 @@ def update_booking(booking_id):
     machine = db.session.get(Machine, machine_id)
     if not machine:
         return jsonify({"error": "machine not found"}), 404
+    machine_status_error = _require_online_machine(machine)
+    if machine_status_error:
+        return machine_status_error
     if _booking_conflict(machine_id, start_time, end_time, booking.id):
         return jsonify({"error": "booking conflict detected"}), 409
 
