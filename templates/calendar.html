@@ -812,10 +812,15 @@ async function apiFetch(url, opts = {}) {
 }
 
 async function loadMachines() {
-    machines = await apiFetch("/api/machines");
     const sel = document.getElementById("fMachine");
+    const prevMachineId = sel.value;
+    machines = await apiFetch("/api/machines");
     sel.innerHTML = machines.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-    if (machines.length) sel.selectedIndex = 0;
+    if (prevMachineId && machines.some(m => String(m.id) === String(prevMachineId))) {
+        sel.value = String(prevMachineId);
+    } else if (machines.length) {
+        sel.selectedIndex = 0;
+    }
 }
 
 function getDefaultQualifiedUser() {
@@ -825,10 +830,11 @@ function getDefaultQualifiedUser() {
 
 function renderUserOptions() {
     const sel = document.getElementById("fUser");
+    const prevUserId = sel.value;
     sel.innerHTML = qualifiedUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
-    // Restore saved user from localStorage, else fall back to current user
+    // Prefer current in-form selection, then localStorage, then current user
     const savedUserId = localStorage.getItem("cal_selected_user_id");
-    const targetId = savedUserId || String(CURRENT_USER_ID);
+    const targetId = (prevUserId && prevUserId !== "") ? prevUserId : (savedUserId || String(CURRENT_USER_ID));
     const found = qualifiedUsers.find(u => String(u.id) === targetId);
     if (found) {
         sel.value = String(found.id);
