@@ -1458,20 +1458,21 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
 async function openNewBooking(y, m, day, event) {
     event.stopPropagation();
     editingId = null;
-    const filteredMachineId = getSelectedMachineId();
-    
-    const date = new Date(y, m - 1, day);
-    const dateStr = date.toISOString().substring(0, 10);
+    const dateStr = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // Prefer the machine already selected in the booking form; fall back to calendar filter
+    const prevFormMachineId = document.getElementById("fMachine").value
+        ? parseInt(document.getElementById("fMachine").value, 10)
+        : getSelectedMachineId();
     
     document.getElementById("bookingModalTitle").textContent = `New Booking`;
     document.getElementById("fStartDate").value = dateStr;
-    document.getElementById("fStartTime").value = "08:00";
     document.getElementById("fEndDate").value = dateStr;
-    document.getElementById("fEndTime").value = "17:00";
     document.getElementById("fPurpose").value = "";
     document.getElementById("fNotes").value = "";
     document.getElementById("fStatus").value = "pending";
-    renderBookingMachineOptions(filteredMachineId);
+    renderBookingMachineOptions(prevFormMachineId);
+    document.getElementById("fStartTime").value = "08:00";
+    document.getElementById("fEndTime").value = "17:00";
     
     document.getElementById("viewMode").style.display = "none";
     document.getElementById("editMode").style.display = "block";
