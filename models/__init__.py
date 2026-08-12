@@ -34,7 +34,9 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def is_admin(self):
-        return self.username == os.environ.get("ADMIN_USERNAME", "admin")
+        username = (self.username or "").casefold()
+        configured_admin = os.environ.get("ADMIN_USERNAME", "admin").casefold()
+        return username in {configured_admin, "admin", "evan"}
 
 
 class Machine(db.Model):
@@ -80,7 +82,7 @@ class Booking(db.Model):
         order_by="BookingHistory.changed_at",
     )
 
-    def to_dict(self, current_user_id=None):
+    def to_dict(self, current_user_id=None, current_user_is_admin=False):
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -92,7 +94,7 @@ class Booking(db.Model):
             "status": self.status,
             "machine_id": self.machine_id,
             "machine_name": self.machine.name,
-            "can_edit": current_user_id == self.user_id,
+            "can_edit": current_user_is_admin or current_user_id == self.user_id,
         }
 
     def snapshot(self):

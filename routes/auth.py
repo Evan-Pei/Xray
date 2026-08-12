@@ -6,11 +6,17 @@ from models import User
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+def _post_login_redirect():
+    if current_user.is_admin():
+        return redirect(url_for('admin.machine_list'))
+    return redirect(url_for('web.calendar_view'))
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Admin login page"""
     if current_user.is_authenticated:
-        return redirect(url_for('admin.machine_list'))
+        return _post_login_redirect()
 
     error = None
     if request.method == 'POST':
@@ -20,7 +26,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('admin.machine_list'))
+            return _post_login_redirect()
         error = 'Invalid username or password'
 
     return render_template('auth/login.html', error=error), 200
