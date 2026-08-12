@@ -791,6 +791,8 @@ const TODAY_MONTH = {{ today_month }};
 const TODAY_DAY   = {{ today_day }};
 const CURRENT_USER = {{ current_username | tojson }};
 const CURRENT_USER_ID = {{ current_user_id | tojson }};
+const CURRENT_USER_IS_ADMIN = {{ current_user_is_admin | tojson }};
+const CURRENT_USER_IS_QUALIFIED = {{ current_user_is_qualified | tojson }};
 const QUALIFIED_USERS_INITIAL = {{ qualified_users | tojson }};
 const MACHINE_STORAGE_KEY = "cal_selected_machine_id";
 
@@ -1085,15 +1087,18 @@ function getDefaultQualifiedUser() {
 function renderUserOptions() {
     const sel = document.getElementById("fUser");
     const prevUserId = sel.value;
-    sel.innerHTML = qualifiedUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
+    const selectableUsers = CURRENT_USER_IS_ADMIN
+        ? qualifiedUsers
+        : qualifiedUsers.filter(u => u.id === CURRENT_USER_ID);
+    sel.innerHTML = selectableUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
     // Prefer current in-form selection, then localStorage, then current user
     const savedUserId = localStorage.getItem("cal_selected_user_id");
     const targetId = (prevUserId && prevUserId !== "") ? prevUserId : (savedUserId || String(CURRENT_USER_ID));
-    const found = qualifiedUsers.find(u => String(u.id) === targetId);
+    const found = selectableUsers.find(u => String(u.id) === targetId);
     if (found) {
         sel.value = String(found.id);
     } else {
-        const def = getDefaultQualifiedUser();
+        const def = selectableUsers.find(u => u.id === CURRENT_USER_ID) || selectableUsers[0];
         if (def) sel.value = String(def.id);
     }
 }
@@ -1198,7 +1203,10 @@ async function renderMain(y, m) {
             const more = dayBookings.length > MAX
                 ? `<div class="more-chip">+${dayBookings.length - MAX} 更多…</div>`
                 : "";
-            return `<td class="${isToday ? 'today' : ''}" onclick="openNewBooking(${y}, ${m}, ${day}, event)">
+            const dayCellClick = CURRENT_USER_IS_QUALIFIED
+                ? `onclick="openNewBooking(${y}, ${m}, ${day}, event)"`
+                : "";
+            return `<td class="${isToday ? 'today' : ''}" ${dayCellClick}>
                 <div class="cal-date">${day}</div>
                 <div class="cal-chips-container">${chips}${more}</div>
             </td>`;
@@ -1342,18 +1350,27 @@ async function openViewBooking(id, event) {
     document.getElementById("editMode").style.display = "none";
     
     const footer = document.getElementById("bookingModalFooter");
-    footer.innerHTML = `
-        <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
-        <button class="btn btn-primary" onclick="editBooking()">Edit</button>
-        <button class="btn btn-danger" onclick="showDeleteConfirm()">Delete</button>
-    `;
+    if (b.can_edit) {
+        footer.innerHTML = `
+            <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
+            <button class="btn btn-primary" onclick="editBooking()">Edit</button>
+            <button class="btn btn-danger" onclick="showDeleteConfirm()">Delete</button>
+        `;
+    } else {
+        footer.innerHTML = `
+            <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
+        `;
+    }
     document.getElementById("bookingOverlay").classList.add("open");
 }
 
 async function editBooking() {
     if (!editingId) return;
     const b = (await loadBookings(curYear, curMonth)).find(b => b.id === editingId);
-    if (!b) return;
+    if (!b || !b.can_edit) {
+        showToast("You can only edit your own booking.", "error");
+        return;
+    }
 
     document.getElementById("fUser").value = b.user_id;
     renderBookingMachineOptions(b.machine_id);
@@ -1457,6 +1474,10 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
 // ── New Booking ────────────────────────────────────────────────────────
 async function openNewBooking(y, m, day, event) {
     event.stopPropagation();
+    if (!CURRENT_USER_IS_QUALIFIED) {
+        showToast("Only qualified users can create bookings.", "error");
+        return;
+    }
     editingId = null;
     const dateStr = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     // Prefer the machine already selected in the booking form; fall back to calendar filter

@@ -103,7 +103,9 @@ def list_bookings():
         query = query.filter_by(machine_id=machine_id)
 
     bookings = query.order_by(Booking.start_time.asc()).all()
-    return jsonify([booking.to_dict(current_user.id) for booking in bookings])
+    return jsonify(
+        [booking.to_dict(current_user.id, current_user.is_admin()) for booking in bookings]
+    )
 
 
 @api_bp.post("/bookings")
@@ -166,7 +168,7 @@ def create_booking():
     db.session.flush()
     _record_history(booking, "created")
     db.session.commit()
-    return jsonify(booking.to_dict(current_user.id)), 201
+    return jsonify(booking.to_dict(current_user.id, current_user.is_admin())), 201
 
 
 @api_bp.put("/bookings/<int:booking_id>")
@@ -175,7 +177,7 @@ def update_booking(booking_id):
     booking = db.session.get(Booking, booking_id)
     if not booking or booking.is_deleted:
         return jsonify({"error": "booking not found"}), 404
-    if booking.user_id != current_user.id:
+    if booking.user_id != current_user.id and not current_user.is_admin():
         return jsonify({"error": "forbidden"}), 403
 
     data = request.get_json(silent=True) or {}
@@ -215,7 +217,7 @@ def update_booking(booking_id):
     booking.status = status
     _record_history(booking, "updated")
     db.session.commit()
-    return jsonify(booking.to_dict(current_user.id))
+    return jsonify(booking.to_dict(current_user.id, current_user.is_admin()))
 
 
 @api_bp.delete("/bookings/<int:booking_id>")
@@ -224,7 +226,7 @@ def delete_booking(booking_id):
     booking = db.session.get(Booking, booking_id)
     if not booking or booking.is_deleted:
         return jsonify({"error": "booking not found"}), 404
-    if booking.user_id != current_user.id:
+    if booking.user_id != current_user.id and not current_user.is_admin():
         return jsonify({"error": "forbidden"}), 403
 
     booking.is_deleted = True

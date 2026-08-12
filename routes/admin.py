@@ -19,9 +19,17 @@ def _is_checked(field_name):
     return request.form.get(field_name) in {"on", "true", "1", "yes"}
 
 
+def _require_admin():
+    if not current_user.is_authenticated:
+        abort(401)
+    if not current_user.is_admin():
+        abort(403)
+
+
 @admin_bp.route("/", methods=["GET"])
 @login_required
 def index():
+    _require_admin()
     return redirect(url_for("admin.machine_list"))
 
 
@@ -29,6 +37,7 @@ def index():
 @login_required
 def machine_list():
     """List all machines and handle creation"""
+    _require_admin()
     if request.method == "POST":
         machine_id = request.form.get("id", "").strip()
         name = request.form.get("name", "").strip()
@@ -62,6 +71,7 @@ def machine_list():
 @login_required
 def edit_machine(machine_id: int):
     """Edit a specific machine"""
+    _require_admin()
     machine = db.session.get(Machine, machine_id)
     if machine is None:
         abort(404)
@@ -122,6 +132,7 @@ def edit_machine(machine_id: int):
 @login_required
 def delete_machine(machine_id: int):
     """Delete a machine"""
+    _require_admin()
     machine = db.session.get(Machine, machine_id)
     if machine is None:
         abort(404)
@@ -135,6 +146,7 @@ def delete_machine(machine_id: int):
 @admin_bp.route("/users", methods=["GET", "POST"])
 @login_required
 def user_list():
+    _require_admin()
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
@@ -161,6 +173,7 @@ def user_list():
 @admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_user(user_id: int):
+    _require_admin()
     user = db.session.get(User, user_id)
     if user is None:
         abort(404)
@@ -192,6 +205,7 @@ def edit_user(user_id: int):
 @admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
 @login_required
 def delete_user(user_id: int):
+    _require_admin()
     user = db.session.get(User, user_id)
     if user is None:
         abort(404)
@@ -208,6 +222,7 @@ def delete_user(user_id: int):
 @admin_bp.route("/users/<int:user_id>/toggle-qualified", methods=["POST"])
 @login_required
 def toggle_user_qualified(user_id: int):
+    _require_admin()
     user = db.session.get(User, user_id)
     if user is None:
         abort(404)

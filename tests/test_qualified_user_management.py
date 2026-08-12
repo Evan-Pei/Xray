@@ -249,6 +249,138 @@ def test_admin_can_book_for_another_qualified_user(client, app):
     assert data["applicant_name"] == "qualified-target"
 
 
+def test_non_admin_login_redirects_to_calendar(client, app):
+    _create_user(app, "calendar-user", "pw7", True)
+
+    response = client.post(
+        "/auth/login",
+        data={"username": "calendar-user", "password": "pw7"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert "/calendar" in response.headers["Location"]
+
+
+def test_non_admin_cannot_access_admin_routes(client, app):
+    _create_user(app, "regular-admin-page", "pw8", True)
+    _login(client, "regular-admin-page", "pw8")
+
+    response = client.get("/admin/machines")
+
+    assert response.status_code == 403
+
+
+def test_non_admin_cannot_update_or_delete_other_users_booking(client, app):
+    _create_user(app, "owner-user", "pw9", True)
+    _create_user(app, "other-user", "pw10", True)
+
+    _login(client, "owner-user", "pw9")
+    created = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-07-31T09:00:00",
+            "end": "2026-07-31T10:00:00",
+            "machine_id": 1,
+            "purpose": "owner booking",
+        },
+    )
+    assert created.status_code == 201
+    booking_id = created.get_json()["id"]
+    client.post("/auth/logout")
+
+    _login(client, "other-user", "pw10")
+    update_response = client.put(
+        f"/api/bookings/{booking_id}",
+        json={"purpose": "forbidden update"},
+    )
+    delete_response = client.delete(f"/api/bookings/{booking_id}")
+
+    assert update_response.status_code == 403
+    assert delete_response.status_code == 403
+
+
+def test_admin_and_evan_can_update_or_delete_other_users_booking(client, app):
+    _create_user(app, "owner-admin-case", "pw11", True)
+    _create_user(app, "Evan", "pw12", True)
+
+    _login(client, "owner-admin-case", "pw11")
+    created = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-07-31T10:00:00",
+            "end": "2026-07-31T11:00:00",
+            "machine_id": 1,
+            "purpose": "owner booking 2",
+        },
+    )
+    assert created.status_code == 201
+    booking_id = created.get_json()["id"]
+    client.post("/auth/logout")
+
+    _login(client)
+    admin_update = client.put(
+        f"/api/bookings/{booking_id}",
+        json={"purpose": "admin updated"},
+    )
+    assert admin_update.status_code == 200
+    client.post("/auth/logout")
+
+    _login(client, "Evan", "pw12")
+    admin_page = client.get("/admin/machines")
+    evan_delete = client.delete(f"/api/bookings/{booking_id}")
+
+    assert admin_page.status_code == 200
+    assert evan_delete.status_code == 200
+
+
+def test_booking_can_edit_flag_respects_owner_and_admin(client, app):
+    _create_user(app, "booking-owner", "pw13", True)
+    _create_user(app, "booking-viewer", "pw14", True)
+
+    _login(client, "booking-owner", "pw13")
+    created = client.post(
+        "/api/bookings",
+        json={
+            "start": "2026-07-31T12:00:00",
+            "end": "2026-07-31T13:00:00",
+            "machine_id": 1,
+            "purpose": "can-edit check",
+        },
+    )
+    assert created.status_code == 201
+    booking_id = created.get_json()["id"]
+    client.post("/auth/logout")
+
+    _login(client, "booking-viewer", "pw14")
+    viewer_list = client.get("/api/bookings")
+    viewer_booking = next(item for item in viewer_list.get_json() if item["id"] == booking_id)
+    assert viewer_booking["can_edit"] is False
+    client.post("/auth/logout")
+
+    _login(client)
+    admin_list = client.get("/api/bookings")
+    admin_booking = next(item for item in admin_list.get_json() if item["id"] == booking_id)
+    assert admin_booking["can_edit"] is True
+
+
+def test_calendar_injects_frontend_permission_flags(client, app):
+    _create_user(app, "unqualified-ui-user", "pw15", False)
+    _login(client, "unqualified-ui-user", "pw15")
+
+    regular_calendar = client.get("/calendar")
+    assert regular_calendar.status_code == 200
+    assert b"const CURRENT_USER_IS_ADMIN = false;" in regular_calendar.data
+    assert b"const CURRENT_USER_IS_QUALIFIED = false;" in regular_calendar.data
+    client.post("/auth/logout")
+
+    _login(client)
+    admin_calendar = client.get("/calendar")
+    assert admin_calendar.status_code == 200
+    assert b"const CURRENT_USER_IS_ADMIN = true;" in admin_calendar.data
+    assert b"const CURRENT_USER_IS_QUALIFIED = true;" in admin_calendar.data
+
+
 def test_update_booking_rejects_maintenance_machine(client, app):
     _login(client)
     source_machine = _get_machine(app, "X-Ray 1")

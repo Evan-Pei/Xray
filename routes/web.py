@@ -71,6 +71,8 @@ def calendar_view():
         today_day=today.day,
         current_username=current_user.username,
         current_user_id=current_user.id,
+        current_user_is_admin=current_user.is_admin(),
+        current_user_is_qualified=current_user.is_qualified,
         qualified_users=qualified_users,
     )
 
