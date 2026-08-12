@@ -1011,8 +1011,13 @@ function getMachineChipColors(machineId) {
 
 function fmtDatetime(isoStr) {
     if (!isoStr) return "—";
-    const d = new Date(isoStr + "Z");
-    return d.toLocaleString('zh-TW');
+    // Parse ISO string components directly to avoid timezone conversion.
+    // e.g. "2026-08-12T08:00:00" → treat as local time without offset.
+    const [datePart, timePart] = isoStr.split('T');
+    const [y, mo, d] = datePart.split('-').map(Number);
+    const [h, mi] = (timePart || '00:00:00').split(':').map(Number);
+    const dt = new Date(y, mo - 1, d, h, mi);
+    return dt.toLocaleString('zh-TW');
 }
 
 function isoToDateStr(isoStr) {
