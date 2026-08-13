@@ -1025,10 +1025,7 @@ function isoToDateStr(isoStr) {
 }
 
 function isoToTimeStr(isoStr) {
-    const dt = isoStr.substring(11, 16);
-    const [h, m] = dt.split(':');
-    const hm = Math.floor(Number(m) / 15);
-    return `${h}:${pad(hm * 15)}`;
+    return isoStr.substring(11, 16);
 }
 
 function toLocalInputValue(isoStr) {
