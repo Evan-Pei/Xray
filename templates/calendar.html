@@ -449,6 +449,86 @@
             justify-content: flex-end;
         }
 
+        .overlay-side {
+            justify-content: flex-end;
+            padding: 24px;
+        }
+        .day-view-panel {
+            background: var(--white);
+            width: min(420px, 100%);
+            max-height: calc(100vh - 48px);
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .day-view-summary {
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .day-view-body {
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .day-view-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .day-view-item {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #f8fafc;
+            padding: 14px 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        .day-view-item:hover {
+            border-color: var(--blue);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+        }
+        .day-view-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .day-view-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .day-view-machine {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .day-view-meta {
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .day-view-empty {
+            padding: 24px 0;
+            text-align: center;
+            color: var(--muted);
+        }
+        .day-view-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
         .btn {
             padding: 10px 16px;
             border: none;
@@ -601,6 +681,14 @@
                 width: 100%;
                 text-align: center;
             }
+            .overlay-side {
+                padding: 0;
+            }
+            .day-view-panel {
+                width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+            }
         }
     </style>
 </head>
@@ -663,6 +751,26 @@
         <div class="mini-cal mini-cal-aside" id="miniCalNext" onclick="jumpToNext()">
             <div class="mini-cal-header" id="miniNextTitle">—</div>
             <table id="miniNextTable"><tbody></tbody></table>
+        </div>
+    </div>
+</div>
+
+<!-- Day View Sidebar -->
+<div class="overlay overlay-side" id="dayViewOverlay" onclick="closeDayViewOnOutside(event)">
+    <div class="day-view-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="dayViewTitle">—</div>
+                <div class="day-view-summary" id="dayViewSummary">—</div>
+            </div>
+            <button class="modal-close" onclick="closeDayView()">✕</button>
+        </div>
+        <div class="day-view-body">
+            <div class="day-view-list" id="dayViewList"></div>
+            <div class="day-view-empty" id="dayViewEmpty" style="display: none;">當日沒有預約</div>
+        </div>
+        <div class="day-view-footer" id="dayViewFooter">
+            <button class="btn btn-secondary" onclick="closeDayView()">Close</button>
         </div>
     </div>
 </div>
@@ -808,6 +916,7 @@ let bookingsCache = {};   // key: "YYYY-M" → { data: [], ts: timestamp }
 let editingId = null;     // booking id when editing
 let deleteTargetId = null;
 let lastUpdated = null;   // timestamp of last successful data fetch
+let selectedDayView = null;
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
 const MONTH_NAMES_ZH = [
@@ -1020,6 +1129,87 @@ function fmtDatetime(isoStr) {
     return dt.toLocaleString('zh-TW');
 }
 
+function fmtDayViewTitle(y, m, day) {
+    return `${y}年${pad(m)}月${pad(day)}日`;
+}
+
+function fmtDayViewTimeRange(booking) {
+    const startDate = booking.start.substring(0, 10);
+    const endDate = booking.end.substring(0, 10);
+    const startTime = isoToTimeStr(booking.start);
+    const endTime = isoToTimeStr(booking.end);
+    if (startDate === endDate) return `${startTime} - ${endTime}`;
+    return `${startDate} ${startTime} - ${endDate} ${endTime}`;
+}
+
+function dayViewBookingHTML(booking) {
+    return `
+        <button class="day-view-item" type="button" onclick="openDayViewBooking(${booking.id}, event)">
+            <div class="day-view-item-header">
+                <div class="day-view-time">${escapeHtml(fmtDayViewTimeRange(booking))}</div>
+                ${statusBadgeHTML(booking.status)}
+            </div>
+            <div class="day-view-machine">${escapeHtml(booking.machine_name)}</div>
+            <div class="day-view-meta">使用者：${escapeHtml(booking.applicant_name)}</div>
+        </button>
+    `;
+}
+
+function renderDayView(y, m, day, dayBookings) {
+    selectedDayView = { year: y, month: m, day };
+    document.getElementById("dayViewTitle").textContent = fmtDayViewTitle(y, m, day);
+    document.getElementById("dayViewSummary").textContent = `共 ${dayBookings.length} 筆預約`;
+    document.getElementById("dayViewList").innerHTML = dayBookings.map(dayViewBookingHTML).join("");
+    document.getElementById("dayViewEmpty").style.display = dayBookings.length ? "none" : "block";
+
+    const footer = document.getElementById("dayViewFooter");
+    footer.innerHTML = CURRENT_USER_IS_QUALIFIED
+        ? `
+            <button class="btn btn-secondary" onclick="closeDayView()">Close</button>
+            <button class="btn btn-primary" onclick="openNewBookingFromDayView()">New Booking</button>
+        `
+        : `
+            <button class="btn btn-secondary" onclick="closeDayView()">Close</button>
+        `;
+
+    document.getElementById("dayViewOverlay").classList.add("open");
+}
+
+async function openDayBookings(y, m, day, event) {
+    event?.stopPropagation();
+    try {
+        const bookings = await loadBookings(y, m);
+        const byDay = groupByDay(bookings, y, m);
+        renderDayView(y, m, day, byDay[day] || []);
+    } catch (e) {
+        showToast("載入當日預約失敗: " + e.message, "error");
+    }
+}
+
+function closeDayView() {
+    document.getElementById("dayViewOverlay").classList.remove("open");
+    selectedDayView = null;
+}
+
+function closeDayViewOnOutside(event) {
+    if (event.target === event.currentTarget) {
+        closeDayView();
+    }
+}
+
+function openNewBookingFromDayView() {
+    if (!selectedDayView) return;
+    const { year, month, day } = selectedDayView;
+    closeDayView();
+    openNewBooking(year, month, day);
+}
+
+async function openDayViewBooking(id, event) {
+    event.stopPropagation();
+    closeDayView();
+    await openViewBooking(id, event);
+}
+
 function isoToDateStr(isoStr) {
     return isoStr.substring(0, 10);
 }
@@ -1205,9 +1395,7 @@ async function renderMain(y, m) {
             const more = dayBookings.length > MAX
                 ? `<div class="more-chip">+${dayBookings.length - MAX} 更多…</div>`
                 : "";
-            const dayCellClick = CURRENT_USER_IS_QUALIFIED
-                ? `onclick="openNewBooking(${y}, ${m}, ${day}, event)"`
-                : "";
+            const dayCellClick = `onclick="openDayBookings(${y}, ${m}, ${day}, event)"`;
             return `<td class="${isToday ? 'today' : ''}" ${dayCellClick}>
                 <div class="cal-date">${day}</div>
                 <div class="cal-chips-container">${chips}${more}</div>
@@ -1216,6 +1404,13 @@ async function renderMain(y, m) {
     `).join("");
 
     document.getElementById("monthTitle").textContent = `${MONTH_NAMES_ZH[m]} ${y}`;
+    if (selectedDayView) {
+        if (selectedDayView.year === y && selectedDayView.month === m) {
+            renderDayView(y, m, selectedDayView.day, byDay[selectedDayView.day] || []);
+        } else {
+            closeDayView();
+        }
+    }
 }
 
 function buildCalGrid(y, m) {
@@ -1474,8 +1669,8 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", async () =
 });
 
 // ── New Booking ────────────────────────────────────────────────────────
-async function openNewBooking(y, m, day, event) {
-    event.stopPropagation();
+async function openNewBooking(y, m, day, event = null) {
+    event?.stopPropagation();
     if (!CURRENT_USER_IS_QUALIFIED) {
         showToast("Only qualified users can create bookings.", "error");
         return;

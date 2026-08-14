@@ -168,6 +168,18 @@ def test_calendar_renders_machine_filter_ui(client):
     assert b'id="machineStatusLegend"' in response.data
 
 
+def test_calendar_includes_day_view_sidebar_markup(client):
+    _login(client)
+
+    response = client.get("/calendar")
+
+    assert response.status_code == 200
+    assert b'id="dayViewOverlay"' in response.data
+    assert b'id="dayViewList"' in response.data
+    assert b'id="dayViewFooter"' in response.data
+    assert b"openDayBookings(" in response.data
+
+
 def test_create_booking_rejects_unqualified_selected_user(client, app):
     target_user_id = _create_user(app, "not-qualified", "pw3", False)
     _login(client)

@@ -105,3 +105,14 @@ def test_calendar_includes_fixed_height_styles():
     assert "height: 120px;" in calendar_template
     assert "max-height: 120px;" in calendar_template
     assert "overflow: hidden;" in calendar_template
+
+
+def test_calendar_template_includes_day_view_sidebar():
+    calendar_template = (Path(__file__).resolve().parents[1] / "templates" / "calendar.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'id="dayViewOverlay"' in calendar_template
+    assert 'class="day-view-panel"' in calendar_template
+    assert 'openDayBookings(${y}, ${m}, ${day}, event)' in calendar_template
+    assert '+${dayBookings.length - MAX} 更多…' in calendar_template
