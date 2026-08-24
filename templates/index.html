@@ -8,8 +8,20 @@
         body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; color: #1f2937; }
         .container { max-width: 900px; margin: 60px auto; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.08); }
         h1 { margin-top: 0; color: #0f172a; }
+        h2 { margin: 24px 0 12px; color: #0f172a; }
         a { color: #2563eb; text-decoration: none; font-weight: 600; }
         a:hover { text-decoration: underline; }
+        form { display: grid; gap: 12px; margin-top: 12px; }
+        .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 4px; }
+        input, select, button { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        button { width: auto; background: #2563eb; color: #fff; border: none; cursor: pointer; font-weight: 600; padding: 10px 16px; }
+        button:hover { background: #1d4ed8; }
+        .actions { display: flex; gap: 8px; }
+        .table-wrap { overflow-x: auto; margin-top: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+        .empty { color: #64748b; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -21,6 +33,77 @@
             <a href="/calendar">行事曆 Calendar</a> &nbsp;|&nbsp;
             <a href="/auth/login">Admin Login</a>
         </p>
+
+        <h2>搜尋預約 Search Bookings</h2>
+        <form method="get" action="/">
+            <div class="filters">
+                <div>
+                    <label for="machine_id">機台別 Machine</label>
+                    <select id="machine_id" name="machine_id">
+                        <option value="">全部</option>
+                        {% for machine in machines %}
+                        <option value="{{ machine.id }}" {% if selected_machine_id == machine.id %}selected{% endif %}>
+                            {{ machine.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="start_date">開始日期 Start Date</label>
+                    <input id="start_date" type="date" name="start_date" value="{{ selected_start_date }}">
+                </div>
+                <div>
+                    <label for="end_date">結束日期 End Date</label>
+                    <input id="end_date" type="date" name="end_date" value="{{ selected_end_date }}">
+                </div>
+                <div>
+                    <label for="user">使用者 User</label>
+                    <input id="user" name="user" list="user-list" value="{{ selected_user }}" placeholder="輸入或選擇使用者">
+                    <datalist id="user-list">
+                        {% for user in users %}
+                        <option value="{{ user.username }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+            </div>
+            <div class="actions">
+                <button type="submit">搜尋 Search</button>
+                <a href="/">清除 Clear</a>
+            </div>
+        </form>
+
+        {% if search_performed %}
+            {% if bookings %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機台 Machine</th>
+                            <th>使用者 User</th>
+                            <th>標題 Title</th>
+                            <th>開始 Start</th>
+                            <th>結束 End</th>
+                            <th>狀態 Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.machine.name }}</td>
+                            <td>{{ booking.applicant_name }}</td>
+                            <td>{{ booking.title }}</td>
+                            <td>{{ booking.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ booking.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ booking.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty">查無符合條件的預約記錄。</p>
+            {% endif %}
+        {% endif %}
     </main>
 </body>
 </html>

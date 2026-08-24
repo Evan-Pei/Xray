@@ -8,9 +8,54 @@ from models import Booking, Machine, User, db
 web_bp = Blueprint("web", __name__, url_prefix="/")
 
 
+def _parse_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 @web_bp.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")
+    machines = Machine.query.order_by(Machine.name.asc()).all()
+    users = User.query.order_by(User.username.asc()).all()
+
+    machine_id = request.args.get("machine_id", type=int)
+    start_date_raw = (request.args.get("start_date") or "").strip()
+    end_date_raw = (request.args.get("end_date") or "").strip()
+    user_query = (request.args.get("user") or "").strip()
+    search_performed = any([machine_id, start_date_raw, end_date_raw, user_query])
+
+    bookings = []
+    if search_performed:
+        query = Booking.query.filter(Booking.is_deleted.is_(False))
+        if machine_id:
+            query = query.filter(Booking.machine_id == machine_id)
+
+        start_date = _parse_date(start_date_raw)
+        end_date = _parse_date(end_date_raw)
+        if start_date:
+            query = query.filter(Booking.end_time >= datetime.combine(start_date, datetime.min.time()))
+        if end_date:
+            query = query.filter(Booking.start_time <= datetime.combine(end_date, datetime.max.time()))
+        if user_query:
+            query = query.filter(Booking.applicant_name.ilike(f"%{user_query}%"))
+
+        bookings = query.order_by(Booking.start_time.asc()).all()
+
+    return render_template(
+        "index.html",
+        machines=machines,
+        users=users,
+        bookings=bookings,
+        search_performed=search_performed,
+        selected_machine_id=machine_id,
+        selected_start_date=start_date_raw,
+        selected_end_date=end_date_raw,
+        selected_user=user_query,
+    )
 
 
 @web_bp.route("/dashboard", methods=["GET"])
