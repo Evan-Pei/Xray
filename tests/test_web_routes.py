@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 import os
 import sys
 
@@ -6,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
 from app import create_app
+from models import Booking, Machine, User, db
 
 
 def create_test_app():
@@ -37,6 +39,84 @@ def test_index_links_to_dashboard_and_calendar():
 
     assert b"/dashboard" in response.data
     assert b"/calendar" in response.data
+
+
+def test_index_search_filters_by_machine_and_user():
+    app = create_test_app()
+
+    with app.app_context():
+        machine_1 = Machine.query.filter_by(name="X-Ray 1").first()
+        machine_2 = Machine.query.filter_by(name="X-Ray 2").first()
+        user = User.query.filter_by(username="admin").first()
+        machine_1_id = machine_1.id
+
+        booking_1 = Booking(
+            title="Morning Slot",
+            purpose="Inspection",
+            applicant_name=user.username,
+            start_time=datetime(2026, 8, 20, 9, 0),
+            end_time=datetime(2026, 8, 20, 10, 0),
+            status="approved",
+            machine_id=machine_1.id,
+            user_id=user.id,
+        )
+        booking_2 = Booking(
+            title="Evening Slot",
+            purpose="Check",
+            applicant_name="other-user",
+            start_time=datetime(2026, 8, 20, 18, 0),
+            end_time=datetime(2026, 8, 20, 19, 0),
+            status="approved",
+            machine_id=machine_2.id,
+            user_id=user.id,
+        )
+        db.session.add_all([booking_1, booking_2])
+        db.session.commit()
+
+    with app.test_client() as client:
+        response = client.get(f"/?machine_id={machine_1_id}&user=admin")
+
+    assert response.status_code == 200
+    assert b"Morning Slot" in response.data
+    assert b"Evening Slot" not in response.data
+
+
+def test_index_search_filters_by_date_range():
+    app = create_test_app()
+
+    with app.app_context():
+        machine = Machine.query.filter_by(name="X-Ray 1").first()
+        user = User.query.filter_by(username="admin").first()
+
+        in_range = Booking(
+            title="In Range",
+            purpose="Inspection",
+            applicant_name=user.username,
+            start_time=datetime(2026, 8, 21, 9, 0),
+            end_time=datetime(2026, 8, 21, 10, 0),
+            status="approved",
+            machine_id=machine.id,
+            user_id=user.id,
+        )
+        out_of_range = Booking(
+            title="Out of Range",
+            purpose="Inspection",
+            applicant_name=user.username,
+            start_time=datetime(2026, 8, 25, 9, 0),
+            end_time=datetime(2026, 8, 25, 10, 0),
+            status="approved",
+            machine_id=machine.id,
+            user_id=user.id,
+        )
+        db.session.add_all([in_range, out_of_range])
+        db.session.commit()
+
+    with app.test_client() as client:
+        response = client.get("/?start_date=2026-08-20&end_date=2026-08-22")
+
+    assert response.status_code == 200
+    assert b"In Range" in response.data
+    assert b"Out of Range" not in response.data
 
 
 def test_dashboard_route_renders_html():
