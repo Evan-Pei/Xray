@@ -17,6 +17,10 @@ def _parse_date(value):
         return None
 
 
+def _escape_like(value):
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 @web_bp.route("/", methods=["GET"])
 def index():
     machines = Machine.query.order_by(Machine.name.asc()).all()
@@ -41,7 +45,8 @@ def index():
         if end_date:
             query = query.filter(Booking.start_time <= datetime.combine(end_date, datetime.max.time()))
         if user_query:
-            query = query.filter(Booking.applicant_name.ilike(f"%{user_query}%"))
+            escaped_user_query = _escape_like(user_query)
+            query = query.filter(Booking.applicant_name.ilike(f"%{escaped_user_query}%", escape="\\"))
 
         bookings = query.order_by(Booking.start_time.asc()).all()
 
