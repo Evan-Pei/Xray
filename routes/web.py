@@ -150,3 +150,22 @@ def view_booking(booking_id: int):
     if booking.user_id != current_user.id:
         abort(403)
     return render_template("booking_detail.html", booking=booking)
+
+
+@web_bp.route("/bookings/create", methods=["GET", "POST"])
+@login_required
+def create_booking():
+    """Create a new booking - placeholder route for calendar.html"""
+    return render_template("index.html")
+
+
+@web_bp.route("/bookings/<int:booking_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_booking(booking_id: int):
+    """Edit an existing booking - placeholder route for calendar.html"""
+    booking = db.session.get(Booking, booking_id)
+    if booking is None or booking.is_deleted:
+        abort(404)
+    if booking.user_id != current_user.id and not current_user.is_admin():
+        abort(403)
+    return render_template("index.html")
