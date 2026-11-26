@@ -48,20 +48,25 @@ def _seed_machines():
 
 def _seed_admin_user():
     """
-    Create or update the admin user.
-    
-    - If ADMIN_USERNAME exists in database, skip (preserve existing password)
-    - If not, create new admin user with ADMIN_PASSWORD from environment
-    - Only creates once; password won't change unless manually updated through admin panel
+    Create or update the configured admin user from the environment.
+
+    Environment credentials are authoritative for deployments. This makes a
+    changed ADMIN_PASSWORD take effect after a restart instead of leaving the
+    database's old password in place.
     """
-    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin").strip()
+    if not admin_username:
+        admin_username = "admin"
+
     existing_user = User.query.filter_by(username=admin_username).first()
-    
-    # User already exists, keep their password unchanged
+
     if existing_user:
         if not existing_user.is_qualified:
             existing_user.is_qualified = True
-            db.session.commit()
+        admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+        if not existing_user.check_password(admin_password):
+            existing_user.set_password(admin_password)
+        db.session.commit()
         return
 
     # Create new admin user with password from environment variable or default
