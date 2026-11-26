@@ -7,8 +7,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
-from app import create_app
-from models import Machine, db
+from app import _seed_admin_user, create_app
+from models import Machine, User, db
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
@@ -44,6 +44,31 @@ def test_login_page_renders_html(client):
     assert response.status_code == 200
     assert response.mimetype == "text/html"
     assert b"Admin Login" in response.data
+
+
+def test_login_accepts_admin_username_case_insensitively(client):
+    response = client.post(
+        "/auth/login",
+        data={"username": "ADMIN", "password": "admin123"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Machine Management" in response.data
+
+
+def test_seed_admin_syncs_configured_password(app):
+    os.environ["ADMIN_PASSWORD"] = "deployed-password"
+    try:
+        with app.app_context():
+            admin = User.query.filter_by(username="admin").first()
+            admin.set_password("old-password")
+            db.session.commit()
+
+            _seed_admin_user()
+
+            assert admin.check_password("deployed-password")
+    finally:
+        os.environ["ADMIN_PASSWORD"] = "admin123"
 
 
 def test_admin_route_requires_authentication(client):
